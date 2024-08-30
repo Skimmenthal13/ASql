@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35219.272
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ASql", "ASql\ASql.csproj", "{65B35A17-BEE5-4DBF-AE43-29F045EF8547}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASql.Tester", "ASql.Tester\ASql.Tester.csproj", "{2A9D4EA6-ABA6-4EDD-A3E3-70ABBE882BF3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{65B35A17-BEE5-4DBF-AE43-29F045EF8547}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65B35A17-BEE5-4DBF-AE43-29F045EF8547}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65B35A17-BEE5-4DBF-AE43-29F045EF8547}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65B35A17-BEE5-4DBF-AE43-29F045EF8547}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A9D4EA6-ABA6-4EDD-A3E3-70ABBE882BF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A9D4EA6-ABA6-4EDD-A3E3-70ABBE882BF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A9D4EA6-ABA6-4EDD-A3E3-70ABBE882BF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A9D4EA6-ABA6-4EDD-A3E3-70ABBE882BF3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {20F0FD59-6CB2-4C83-826B-A3966EA143F0}
+	EndGlobalSection
+EndGlobal
