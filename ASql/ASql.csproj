@@ -4,7 +4,25 @@
     <TargetFrameworks>net48;net8.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>LogAsql.png</PackageIcon>
+    <RepositoryUrl>https://github.com/Skimmenthal13/ASql</RepositoryUrl>
+    <Company />
+    <Authors>Skimmenthal13</Authors>
+    <Title>ASql C# Library that let use multiple types of databases with same code</Title>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\LogAsql.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Oracle.ManagedDataAccess" Version="23.5.1" />
