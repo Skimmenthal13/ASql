@@ -2,7 +2,7 @@
 
 C# Library that let use multiple types of databases with same code
 
-The supported database are SqlServer and Oracle
+The supported databases are SqlServer and Oracle
 
 You only have to declare wich type of database would like you use and use the classe in the same way of sql or oracle client.
 
