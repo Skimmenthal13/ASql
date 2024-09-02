@@ -200,5 +200,26 @@ namespace ASql
                     throw new NotSupportedException();
             }
         }
+
+        public void Dispose()
+        {
+            switch (ASqlManager.DataBaseType)
+            {
+                case ASqlManager.DBType.SqlServer:
+                    if (_sqlConn != null && _sqlConn.State != ConnectionState.Closed) 
+                    {
+                        _sqlConn.Close();
+                    }
+                    break;
+                case ASqlManager.DBType.Oracle:
+                    if (_oraConn != null && _oraConn.State != ConnectionState.Closed)
+                    {
+                        _oraConn.Close();
+                    }
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
     }
 }

@@ -6,14 +6,15 @@ namespace ASql.Tester
     [TestClass]
     public class BasicTest
     {
-        [DataRow("Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=192.168.2.58)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=ORCL)));User Id=METASTORM;Password=metastorm;", "SELECT 3+4 as numero FROM DUAL")]
+        
+        [DataRow("Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XEPDB1)));User Id=DBWUSR;Password=DBWUSR;", "SELECT 3+4 as nvalue FROM DUAL")]
         [TestMethod]
         public void SimpleQueryTest(string ConnectionString, string sql)
         {
             ASqlManager.DataBaseType = ASqlManager.DBType.Oracle;
 
 
-            using (ASqlConnection conn = new ASqlConnection(ConnectionString))//TODO The connection isn't handled neither opened at beginning nor closed at the end 
+            using (ASqlConnection conn = new ASqlConnection(ConnectionString))
             {
                 int i = 0;
                 conn.Open();
@@ -22,11 +23,10 @@ namespace ASql.Tester
                 {
                     while (read.Read())
                     {
-                        i = read.GetInt32(read.GetOrdinal("numero"));  
+                        i = read.GetInt32(read.GetOrdinal("nvalue"));  
                     }
                 }
                 Assert.AreEqual(7, i);
-                conn.Close();
             }
         }
     }
