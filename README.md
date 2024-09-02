@@ -8,4 +8,20 @@ You only have to declare wich type of database would like you use and use the cl
 
 Here you can find an example : 
 
-![immagine_2024-09-02_142547244](https://github.com/user-attachments/assets/2c9c3bec-6bb3-4fd8-8dc5-066b49ec78a8)
+            ASqlManager.DataBaseType = ASqlManager.DBType.Oracle;
+
+
+            using (ASqlConnection conn = new ASqlConnection(ConnectionString))
+            {
+                int i = 0;
+                conn.Open();
+                ASqlCommand cmd = new ASqlCommand(sql, conn);
+                using (DbDataReader read = cmd.ExecuteReader())
+                {
+                    while (read.Read())
+                    {
+                        i = read.GetInt32(read.GetOrdinal("nvalue"));  
+                    }
+                }
+                Assert.AreEqual(7, i);
+            }
