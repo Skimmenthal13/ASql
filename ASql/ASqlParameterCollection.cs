@@ -277,5 +277,34 @@ namespace ASql
                     throw new NotSupportedException();
             }
         }
+
+        public static explicit operator ASqlParameterCollection(SqlParameterCollection v)
+        {
+            ASqlParameterCollection aSqlParameterCollection = new ASqlParameterCollection();
+            foreach (SqlParameter p in v) 
+            {
+                ASqlParameter par = new ASqlParameter();
+                par.ParameterName = p.ParameterName;
+                par.Value = p.Value;
+                par.DbType = p.DbType;
+                par.Size = p.Size;
+                aSqlParameterCollection.Add(par);
+            }
+            return aSqlParameterCollection;
+        }
+
+        public static explicit operator ASqlParameterCollection(OracleParameterCollection v)
+        {
+            ASqlParameterCollection aSqlParameterCollection = new ASqlParameterCollection();
+            foreach (SqlParameter p in v)
+            {
+                ASqlParameter par = new ASqlParameter();
+                par.ParameterName = p.ParameterName;
+                par.Value = p.Value;
+                par.DbType = p.DbType;
+                par.Size = p.Size;
+            }
+            return aSqlParameterCollection;
+        }
     }
 }

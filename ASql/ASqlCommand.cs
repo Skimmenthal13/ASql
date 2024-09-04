@@ -226,6 +226,19 @@ namespace ASql
                     throw new NotSupportedException();
             }
         }
+        //public ASqlParameterCollection Parameters => GetParameterCollectionASql();
+        private ASqlParameterCollection GetParameterCollectionASql()
+        {
+            switch (ASqlManager.DataBaseType)
+            {
+                case ASqlManager.DBType.SqlServer:
+                    return (ASqlParameterCollection)_sqlCmd.Parameters;
+                case ASqlManager.DBType.Oracle:
+                    return (ASqlParameterCollection)_oraCmd.Parameters;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
         protected override DbTransaction DbTransaction {
             get {
                 switch (ASqlManager.DataBaseType)
