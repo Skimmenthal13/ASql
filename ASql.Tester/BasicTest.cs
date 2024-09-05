@@ -149,99 +149,14 @@ namespace ASql.Tester
                 List<ASqlParameter> apc = GetParametersFromkeyValuePairs(d);
                 foreach (ASqlParameter param in apc)
                 {
-                    cmd.Parameters.Add(param);
+                    cmd.aSqlParameters.Add(param);
                 }
-                //List<OracleParameter> apc = GetParametersFromkeyValuePairsOracle(d);
-                //foreach (OracleParameter param in apc)
-                //{
-                //    cmd.Parameters.Add(param);
-                //}
+                
                 i = cmd.ExecuteNonQuery();
                 Assert.AreEqual(1, i);
             }
         }
 
-        internal List<OracleParameter> GetParametersFromkeyValuePairsOracle(Dictionary<string, object> keyValuePairs)
-        {
-            string vals = "";
-            List<OracleParameter> prm = new List<OracleParameter>();
-            foreach (KeyValuePair<string, object> currKvp in keyValuePairs)
-            {
-
-                if (currKvp.Value is DateTime
-                    || currKvp.Value is DateTime?)
-                {
-                    OracleParameter para = new OracleParameter();
-                    para.ParameterName = ":" + currKvp.Key;
-                    para.Direction = ParameterDirection.Input;
-                    para.Value = currKvp.Value;
-                    prm.Add(para);
-                }
-                else if (currKvp.Value is DateTimeOffset
-                    || currKvp.Value is DateTimeOffset?)
-                {
-                    OracleParameter para = new OracleParameter();
-                    para.ParameterName = ":" + currKvp.Key;
-                    para.Direction = ParameterDirection.Input;
-                    para.Value = currKvp.Value;
-                    prm.Add(para);
-                }
-                else if (currKvp.Value is int
-                    || currKvp.Value is long
-                    || currKvp.Value is decimal)
-                {
-                    OracleParameter para = new OracleParameter();
-                    para.ParameterName = ":" + currKvp.Key;
-                    para.Direction = ParameterDirection.Input;
-                    para.Value = currKvp.Value;
-                    prm.Add(para);
-                }
-                else if (currKvp.Value is bool)
-                {
-                    string val = ((bool)currKvp.Value ? "1" : "0");
-                    OracleParameter para = new OracleParameter();
-                    para.ParameterName = ":" + currKvp.Key;
-                    para.Direction = ParameterDirection.Input;
-                    para.Value = val;
-                    prm.Add(para);
-                }
-                else if (currKvp.Value is byte[])
-                {
-                    OracleParameter para = new OracleParameter();
-                    para.ParameterName = ":" + currKvp.Key;
-                    para.Direction = ParameterDirection.Input;
-                    para.Value = currKvp.Value;
-                    prm.Add(para);
-                }
-                else if (currKvp.Value is string)
-                {
-                    OracleParameter para = new OracleParameter();
-                    para.ParameterName = ":" + currKvp.Key;
-                    para.Direction = ParameterDirection.Input;
-                    para.Value = currKvp.Value;
-                    prm.Add(para);
-                }
-                else if (currKvp.Value is Guid)
-                {
-                    OracleParameter para = new OracleParameter();
-                    para.ParameterName = ":" + currKvp.Key;
-                    para.Direction = ParameterDirection.Input;
-                    para.Value = currKvp.Value.ToString();
-                    prm.Add(para);
-                }
-                else
-                {
-                    OracleParameter para = new OracleParameter();
-                    para.ParameterName = ":" + currKvp.Key;
-                    para.Direction = ParameterDirection.Input;
-                    para.Value = currKvp.Value;
-                    prm.Add(para);
-                }
-
-
-            }
-            return prm;
-        }
         internal List<ASqlParameter> GetParametersFromkeyValuePairs(Dictionary<string, object> keyValuePairs)
         {
             string vals = "";

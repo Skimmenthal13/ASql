@@ -56,6 +56,8 @@ namespace ASql
                     throw new NotSupportedException();
             }
         }
+        private ASqlParameterCollection? m_parameterCollection;
+        public ASqlParameterCollection aSqlParameters => m_parameterCollection ??= [];
         public override string CommandText {
             get {
                 switch (ASqlManager.DataBaseType)
@@ -226,19 +228,7 @@ namespace ASql
                     throw new NotSupportedException();
             }
         }
-        //public ASqlParameterCollection Parameters => GetParameterCollectionASql();
-        private ASqlParameterCollection GetParameterCollectionASql()
-        {
-            switch (ASqlManager.DataBaseType)
-            {
-                case ASqlManager.DBType.SqlServer:
-                    return (ASqlParameterCollection)_sqlCmd.Parameters;
-                case ASqlManager.DBType.Oracle:
-                    return (ASqlParameterCollection)_oraCmd.Parameters;
-                default:
-                    throw new NotSupportedException();
-            }
-        }
+        
         protected override DbTransaction DbTransaction {
             get {
                 switch (ASqlManager.DataBaseType)
@@ -283,6 +273,7 @@ namespace ASql
 
         public override int ExecuteNonQuery()
         {
+            PopulateParameters();
             switch (ASqlManager.DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
@@ -295,6 +286,7 @@ namespace ASql
         }
         public override object ExecuteScalar()
         {
+            PopulateParameters();
             switch (ASqlManager.DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
@@ -342,6 +334,43 @@ namespace ASql
                     return _sqlCmd.ExecuteReader(behavior);
                 case ASqlManager.DBType.Oracle:
                     return _oraCmd.ExecuteReader(behavior);
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
+        private void PopulateParameters()
+        {
+            switch (ASqlManager.DataBaseType)
+            {
+                case ASqlManager.DBType.SqlServer:
+                    foreach (ASqlParameter asqlPar in this.aSqlParameters)
+                    {
+                        SqlParameter sqlPar = new SqlParameter();
+                        sqlPar.ParameterName = asqlPar.ParameterName;
+                        sqlPar.Value = asqlPar.Value;
+                        sqlPar.DbType = asqlPar.DbType;
+                        sqlPar.Size = asqlPar.Size;
+                        sqlPar.IsNullable = asqlPar.IsNullable;
+                        sqlPar.SourceColumn = asqlPar.SourceColumn;
+                        sqlPar.Direction = asqlPar.Direction;
+                        this.Parameters.Add(sqlPar);
+                    }
+                    break;
+                case ASqlManager.DBType.Oracle:
+                    foreach (ASqlParameter asqlPar in this.aSqlParameters)
+                    {
+                        OracleParameter oraPar = new OracleParameter();
+                        oraPar.ParameterName = asqlPar.ParameterName;
+                        oraPar.Value = asqlPar.Value;
+                        oraPar.DbType = asqlPar.DbType;
+                        oraPar.Size = asqlPar.Size;
+                        oraPar.IsNullable = asqlPar.IsNullable;
+                        oraPar.SourceColumn = asqlPar.SourceColumn;
+                        oraPar.Direction = asqlPar.Direction;
+                        this.Parameters.Add(oraPar);
+                    }
+                    break;
                 default:
                     throw new NotSupportedException();
             }

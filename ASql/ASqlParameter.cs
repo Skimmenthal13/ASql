@@ -14,6 +14,7 @@ namespace ASql
     {
         SqlParameter _sqlPrm;
         OracleParameter _oraPrm;
+        internal ASqlParameterCollection? ParameterCollection { get; set; }
         public ASqlParameter() 
         {
             switch (ASqlManager.DataBaseType)
@@ -302,6 +303,8 @@ namespace ASql
             }
         }
 
+        public string NormalizedParameterName { get; internal set; }
+
         public override void ResetDbType()
         {
             switch (ASqlManager.DataBaseType)
@@ -315,6 +318,10 @@ namespace ASql
                 default:
                     throw new NotSupportedException();
             }
+        }
+        internal static string NormalizeParameterName(string v)
+        {
+            return v;
         }
     }
 }
