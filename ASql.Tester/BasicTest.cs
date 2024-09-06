@@ -163,6 +163,34 @@ namespace ASql.Tester
                 Assert.AreEqual("first1", name);
             }
         }
+        [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"select firstname from {tableName} where lastname = @lastname")]
+        [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"select firstname from {tableName} where lastname = :lastname")]
+        [TestMethod]
+        public void ExecuteReaderTester(ASqlManager.DBType dBType, string ConnectionString, string sql)
+        {
+            ASqlManager.DataBaseType = dBType;
+
+            using (ASqlConnection conn = new ASqlConnection(ConnectionString))
+            {
+                string i = "";
+                conn.Open();
+                ASqlCommand cmd = new ASqlCommand(sql, conn);
+                ASqlParameter par = new ASqlParameter();
+                par.ParameterName = "lastname";
+                par.DbType = DbType.String;
+                par.Value = "last1";
+                cmd.aSqlParameters.Add(par);
+                using (DbDataReader read = cmd.ExecuteReader())
+                {
+                    while (read.Read())
+                    {
+                        i = read.GetString(read.GetOrdinal("firstname"));
+                    }
+                }
+
+                Assert.AreEqual("first1", i.ToUpper());
+            }
+        }
         [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,localtime,picture,guid,active) VALUES (@firstname,@lastname,@age,@value,@birthday,@hourly,@localtime,@picture,@guid,@active)")]
         [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,localtime,picture,guid,active) VALUES (:firstname,:lastname,:age,:value,:birthday,:hourly,:localtime,:picture,:guid,:active)")]
         [TestMethod]

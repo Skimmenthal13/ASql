@@ -12,6 +12,7 @@ Here you can find examples :
 
             public void ExecuteQuery(ASqlManager.DBType dBType, string ConnectionString, string sql)
             {
+                //You only have to specify which type of database want to use and after you will have to use ASql objects instead the Typized objects like OracleConnection
                 ASqlManager.DataBaseType = dBType;
 
                 using (ASqlConnection conn = new ASqlConnection(ConnectionString))
@@ -23,7 +24,7 @@ Here you can find examples :
                 }
             }
 
-            # Example 2 Query With Parameters
+            # Example 2.a Query with ExecuteScalar With Parameters
 
             public void ExecuteScalar(ASqlManager.DBType dBType, string ConnectionString)
             {
@@ -44,6 +45,37 @@ Here you can find examples :
                     //Pay attention to popolate the aSqlParameters collection like the row below and not the Parameters collection (the library will think to keep uptodated the Parameters collection)
                     cmd.aSqlParameters.Add(par);
                     name = (string)cmd.ExecuteScalar();
+                }
+            }
+
+            # Example 2.b with ExecuteReader With Parameters
+
+            public void ExecuteReaderTester(ASqlManager.DBType dBType)
+            {
+                string sql = "select firstname from person where lastname = @lastname";
+                //if you want to use oracle you have tu put : intestad @ like this 
+                //string sql = "select firstname from person where lastname = :lastname";
+                ASqlManager.DataBaseType = dBType;
+
+                using (ASqlConnection conn = new ASqlConnection(ConnectionString))
+                {
+                    string i = "";
+                    conn.Open();
+                    ASqlCommand cmd = new ASqlCommand(sql, conn);
+                    ASqlParameter par = new ASqlParameter();
+                    par.ParameterName = "lastname";
+                    par.DbType = DbType.String;
+                    par.Value = "last1";
+                    cmd.aSqlParameters.Add(par);
+                    using (DbDataReader read = cmd.ExecuteReader())
+                    {
+                        while (read.Read())
+                        {
+                            i = read.GetString(read.GetOrdinal("firstname"));
+                        }
+                    }
+
+                    Assert.AreEqual("first1", i.ToUpper());
                 }
             }
 

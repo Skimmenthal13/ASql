@@ -328,6 +328,7 @@ namespace ASql
 
         protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
         {
+            PopulateParameters();
             switch (ASqlManager.DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
