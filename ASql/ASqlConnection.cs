@@ -182,6 +182,11 @@ namespace ASql
                 case ASqlManager.DBType.SqlServer:
                     return (DbTransaction)_sqlConn.BeginTransaction(isolationLevel);
                 case ASqlManager.DBType.Oracle:
+                    //in oracle these are the only two IsolationLevel's permitted
+                    if (isolationLevel != IsolationLevel.ReadCommitted || isolationLevel != IsolationLevel.Serializable)
+                    {
+                        isolationLevel = IsolationLevel.ReadCommitted;
+                    }
                     return (DbTransaction)_oraConn.BeginTransaction(isolationLevel);
                 default:
                     throw new NotSupportedException();

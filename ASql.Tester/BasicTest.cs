@@ -122,9 +122,98 @@ namespace ASql.Tester
                 Assert.AreEqual(-1, i);
             }
         }
+        [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"DROP TABLE {tableName}")]
+        [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"DROP TABLE {tableName}")]
+        [TestMethod]
+        public void DropTableWithRollBack(ASqlManager.DBType dBType, string ConnectionString, string sql)
+        {
+            ASqlManager.DataBaseType = dBType;
+
+            using (ASqlConnection conn = new ASqlConnection(ConnectionString))
+            {
+                int i = 0;
+                conn.Open();
+                DbTransaction trans = conn.BeginTransaction();
+                ASqlCommand cmd = new ASqlCommand(sql, conn);
+                cmd.Transaction = trans;
+                i = cmd.ExecuteNonQuery();
+                trans.Rollback();
+                Assert.AreEqual(-1, i);
+            }
+        }
+        [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"select firstname from {tableName} where lastname = @lastname")]
+        [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"select firstname from {tableName} where lastname = :lastname")]
+        [TestMethod]
+        public void ExecuteScalar(ASqlManager.DBType dBType, string ConnectionString, string sql)
+        {
+            ASqlManager.DataBaseType = dBType;
+
+            using (ASqlConnection conn = new ASqlConnection(ConnectionString))
+            {
+                string name = "";
+                conn.Open();
+                ASqlCommand cmd = new ASqlCommand(sql, conn);
+                ASqlParameter par = new ASqlParameter();
+                par.ParameterName = "lastname";
+                par.DbType = DbType.String;
+                par.Value = "last1";
+                cmd.aSqlParameters.Add(par);
+                name = (string)cmd.ExecuteScalar();
+                
+                Assert.AreEqual("first1", name);
+            }
+        }
+        [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,localtime,picture,guid,active) VALUES (@firstname,@lastname,@age,@value,@birthday,@hourly,@localtime,@picture,@guid,@active)")]
         [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,localtime,picture,guid,active) VALUES (:firstname,:lastname,:age,:value,:birthday,:hourly,:localtime,:picture,:guid,:active)")]
         [TestMethod]
         public void InsertRow(ASqlManager.DBType dBType, string ConnectionString, string sql) 
+        {
+            Dictionary<string, object> d = new Dictionary<string, object>();
+            for (int i = 1; i < 20; i++)
+            {
+                d.Add("firstname", "first" + i);
+                d.Add("lastname", "last" + i);
+                d.Add("age", i);
+                d.Add("value", i * 1000);
+                d.Add("birthday", DateTime.Now);
+                d.Add("hourly", 123.456);
+                d.Add("localtime", new DateTimeOffset(2021, 4, 14, 01, 02, 03, new TimeSpan(7, 0, 0)));
+                d.Add("picture", _FileBytes);
+                d.Add("guid", Guid.NewGuid());
+                d.Add("active", (i % 2 > 0));
+            }
+            ASqlManager.DataBaseType = dBType;
+            using (ASqlConnection conn = new ASqlConnection(ConnectionString))
+            {
+                int i = 0;
+                conn.Open();
+                ASqlCommand cmd = new ASqlCommand(sql, conn);
+                string paramChar = "";
+                switch (ASqlManager.DataBaseType)
+                {
+                    case ASqlManager.DBType.SqlServer:
+                        paramChar = "";
+                        break;
+                    case ASqlManager.DBType.Oracle:
+                        paramChar = ":";
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+                List<ASqlParameter> apc = GetParametersFromkeyValuePairs(d,paramChar);
+                foreach (ASqlParameter param in apc)
+                {
+                    cmd.aSqlParameters.Add(param);
+                }
+                
+                i = cmd.ExecuteNonQuery();
+                Assert.AreEqual(1, i);
+            }
+        }
+        [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,localtime,picture,guid,active) VALUES (@firstname,@lastname,@age,@value,@birthday,@hourly,@localtime,@picture,@guid,@active)")]
+        [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,localtime,picture,guid,active) VALUES (:firstname,:lastname,:age,:value,:birthday,:hourly,:localtime,:picture,:guid,:active)")]
+        [TestMethod]
+        public void InsertRowTransaction(ASqlManager.DBType dBType, string ConnectionString, string sql)
         {
             Dictionary<string, object> d = new Dictionary<string, object>();
             for (int i = 1; i < 2; i++)
@@ -145,19 +234,34 @@ namespace ASql.Tester
             {
                 int i = 0;
                 conn.Open();
+                DbTransaction trans = conn.BeginTransaction();
                 ASqlCommand cmd = new ASqlCommand(sql, conn);
-                List<ASqlParameter> apc = GetParametersFromkeyValuePairs(d);
+                cmd.Transaction = trans;
+                
+                string paramChar = "";
+                switch (ASqlManager.DataBaseType)
+                {
+                    case ASqlManager.DBType.SqlServer:
+                        paramChar = "";
+                        break;
+                    case ASqlManager.DBType.Oracle:
+                        paramChar = ":";
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+                List<ASqlParameter> apc = GetParametersFromkeyValuePairs(d, paramChar);
                 foreach (ASqlParameter param in apc)
                 {
                     cmd.aSqlParameters.Add(param);
                 }
-                
+
                 i = cmd.ExecuteNonQuery();
+                trans.Commit();
                 Assert.AreEqual(1, i);
             }
         }
-
-        internal List<ASqlParameter> GetParametersFromkeyValuePairs(Dictionary<string, object> keyValuePairs)
+        internal List<ASqlParameter> GetParametersFromkeyValuePairs(Dictionary<string, object> keyValuePairs, string paramChar)
         {
             string vals = "";
             List<ASqlParameter> prm = new List<ASqlParameter>();
@@ -168,7 +272,7 @@ namespace ASql.Tester
                     || currKvp.Value is DateTime?)
                 {
                     ASqlParameter para = new ASqlParameter();
-                    para.ParameterName = ":" + currKvp.Key;
+                    para.ParameterName = paramChar + currKvp.Key;
                     para.Direction = ParameterDirection.Input;
                     para.Value = currKvp.Value;
                     prm.Add(para);
@@ -177,7 +281,7 @@ namespace ASql.Tester
                     || currKvp.Value is DateTimeOffset?)
                 {
                     ASqlParameter para = new ASqlParameter();
-                    para.ParameterName = ":" + currKvp.Key;
+                    para.ParameterName = paramChar + currKvp.Key;
                     para.Direction = ParameterDirection.Input;
                     para.Value = currKvp.Value;
                     prm.Add(para);
@@ -187,7 +291,7 @@ namespace ASql.Tester
                     || currKvp.Value is decimal)
                 {
                     ASqlParameter para = new ASqlParameter();
-                    para.ParameterName = ":" + currKvp.Key;
+                    para.ParameterName = paramChar + currKvp.Key;
                     para.Direction = ParameterDirection.Input;
                     para.Value = currKvp.Value;
                     prm.Add(para);
@@ -196,7 +300,7 @@ namespace ASql.Tester
                 {
                     string val = ((bool)currKvp.Value ? "1" : "0");
                     ASqlParameter para = new ASqlParameter();
-                    para.ParameterName = ":" + currKvp.Key;
+                    para.ParameterName = paramChar + currKvp.Key;
                     para.Direction = ParameterDirection.Input;
                     para.Value = val;
                     prm.Add(para);
@@ -204,7 +308,7 @@ namespace ASql.Tester
                 else if (currKvp.Value is byte[])
                 {
                     ASqlParameter para = new ASqlParameter();
-                    para.ParameterName = ":" + currKvp.Key;
+                    para.ParameterName = paramChar + currKvp.Key;
                     para.Direction = ParameterDirection.Input;
                     para.Value = currKvp.Value;
                     prm.Add(para);
@@ -212,7 +316,7 @@ namespace ASql.Tester
                 else if (currKvp.Value is string)
                 {
                     ASqlParameter para = new ASqlParameter();
-                    para.ParameterName = ":" + currKvp.Key;
+                    para.ParameterName = paramChar + currKvp.Key;
                     para.Direction = ParameterDirection.Input;
                     para.Value = currKvp.Value;
                     prm.Add(para);
@@ -220,7 +324,7 @@ namespace ASql.Tester
                 else if (currKvp.Value is Guid)
                 {
                     ASqlParameter para = new ASqlParameter();
-                    para.ParameterName = ":" + currKvp.Key;
+                    para.ParameterName = paramChar + currKvp.Key;
                     para.Direction = ParameterDirection.Input;
                     para.Value = currKvp.Value.ToString();
                     prm.Add(para);
@@ -228,7 +332,7 @@ namespace ASql.Tester
                 else
                 {
                     ASqlParameter para = new ASqlParameter();
-                    para.ParameterName = ":" + currKvp.Key;
+                    para.ParameterName = paramChar + currKvp.Key;
                     para.Direction = ParameterDirection.Input;
                     para.Value = currKvp.Value;
                     prm.Add(para);
@@ -237,6 +341,24 @@ namespace ASql.Tester
 
             }
             return prm;
+        }
+        [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"select * from {tableName}")]
+        [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"select * from {tableName}")]
+        [TestMethod]
+        public void SqlDataAdapterTester(ASqlManager.DBType dBType, string ConnectionString, string sql)
+        {
+            ASqlManager.DataBaseType = dBType;
+
+            using (ASqlConnection conn = new ASqlConnection(ConnectionString))
+            {
+                int i = 0;
+                conn.Open();
+                ASqlCommand cmd = new ASqlCommand(sql, conn);
+                ASqlDataAdapter aSqlDataAdapter = new ASqlDataAdapter(cmd);
+                DataSet ds = new DataSet();
+                i = aSqlDataAdapter.Fill(ds);
+                Assert.AreEqual (1, i);
+            }
         }
     }
 }

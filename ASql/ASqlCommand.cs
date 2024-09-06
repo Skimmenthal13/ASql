@@ -12,8 +12,8 @@ namespace ASql
 {
     public class ASqlCommand : DbCommand
     {
-        SqlCommand _sqlCmd;
-        OracleCommand _oraCmd;
+        internal SqlCommand _sqlCmd;
+        internal OracleCommand _oraCmd;
         public ASqlCommand()
         {
             switch (ASqlManager.DataBaseType)

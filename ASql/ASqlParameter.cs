@@ -112,7 +112,7 @@ namespace ASql
                 }
             }
         }
-        //TODO Implement last two constructors
+        
         public override ParameterDirection Direction 
         {
             get {
