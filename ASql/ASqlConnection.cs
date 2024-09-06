@@ -6,6 +6,11 @@ using System.Text;
 using System.Data.SqlClient;
 using Oracle.ManagedDataAccess.Client;
 using MySql.Data.MySqlClient;
+using Npgsql;
+
+
+using ZstdSharp.Unsafe;
+using Microsoft.Data.Sqlite;
 
 namespace ASql
 {
@@ -15,6 +20,8 @@ namespace ASql
         SqlConnection _sqlConn;
         OracleConnection _oraConn;
         MySqlConnection _mysConn;
+        NpgsqlConnection _posConn;
+        SqliteConnection _litConn;
         public ASqlConnection()
         {
             switch (ASqlManager.DataBaseType)
@@ -27,6 +34,12 @@ namespace ASql
                     break;
                 case ASqlManager.DBType.MySql:
                     _mysConn = new MySqlConnection();
+                    break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posConn = new NpgsqlConnection();
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litConn = new SqliteConnection();
                     break;
                 default:
                     throw new NotSupportedException();
@@ -45,6 +58,12 @@ namespace ASql
                 case ASqlManager.DBType.MySql:
                     _mysConn = new MySqlConnection(connectionString);
                     break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posConn = new NpgsqlConnection(connectionString);
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litConn = new SqliteConnection(connectionString);
+                    break;
                 default:
                     throw new NotSupportedException();
             }
@@ -61,6 +80,14 @@ namespace ASql
         {
             return _mysConn;
         }
+        internal NpgsqlConnection GetPosgreSQLConn()
+        {
+            return _posConn;
+        }
+        internal SqliteConnection GetSqliteConn()
+        {
+            return _litConn;
+        }
         public override string ConnectionString {
             get {
                 switch (ASqlManager.DataBaseType)
@@ -71,6 +98,10 @@ namespace ASql
                         return _oraConn.ConnectionString;
                     case ASqlManager.DBType.MySql:
                         return _mysConn.ConnectionString;
+                    case ASqlManager.DBType.PostgreSQL:
+                        return _posConn.ConnectionString;
+                    case ASqlManager.DBType.Sqlite:
+                        return _litConn.ConnectionString;
                     default:
                         throw new NotSupportedException();
                 }
@@ -86,6 +117,12 @@ namespace ASql
                         break;
                     case ASqlManager.DBType.MySql:
                         _mysConn.ConnectionString = value;
+                        break;
+                    case ASqlManager.DBType.PostgreSQL:
+                        _litConn.ConnectionString = value;
+                        break;
+                    case ASqlManager.DBType.Sqlite:
+                        _litConn.ConnectionString = value;
                         break;
                     default:
                         throw new NotSupportedException();
@@ -104,6 +141,10 @@ namespace ASql
                     return _oraConn.Database;
                 case ASqlManager.DBType.MySql:
                     return _mysConn.Database;
+                case ASqlManager.DBType.PostgreSQL:
+                    return _posConn.Database;
+                case ASqlManager.DBType.Sqlite:
+                    return _litConn.Database;
                 default:
                     throw new NotSupportedException();
             }
@@ -121,6 +162,10 @@ namespace ASql
                     return _oraConn.DataSource;
                 case ASqlManager.DBType.MySql:
                     return _mysConn.DataSource;
+                case ASqlManager.DBType.PostgreSQL:
+                    return _posConn.DataSource;
+                case ASqlManager.DBType.Sqlite:
+                    return _litConn.DataSource;
                 default:
                     throw new NotSupportedException();
             }
@@ -136,6 +181,10 @@ namespace ASql
                     return _oraConn.ServerVersion;
                 case ASqlManager.DBType.MySql:
                     return _mysConn.ServerVersion;
+                case ASqlManager.DBType.PostgreSQL:
+                    return _posConn.ServerVersion;
+                case ASqlManager.DBType.Sqlite:
+                    return _litConn.ServerVersion;
                 default:
                     throw new NotSupportedException();
             }
@@ -151,6 +200,10 @@ namespace ASql
                     return _oraConn.State;
                 case ASqlManager.DBType.MySql:
                     return _mysConn.State;
+                case ASqlManager.DBType.PostgreSQL:
+                    return _posConn.State;
+                case ASqlManager.DBType.Sqlite:
+                    return _litConn.State;
                 default:
                     throw new NotSupportedException();
             }
@@ -167,6 +220,12 @@ namespace ASql
                     break;
                 case ASqlManager.DBType.MySql:
                     _mysConn.ChangeDatabase(databaseName);
+                    break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posConn.ChangeDatabase(databaseName);
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litConn.ChangeDatabase(databaseName);
                     break;
                 default:
                     throw new NotSupportedException();
@@ -186,6 +245,12 @@ namespace ASql
                 case ASqlManager.DBType.MySql:
                     _mysConn.Close();
                     break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posConn.Close();
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litConn.Close();
+                    break;
                 default:
                     throw new NotSupportedException();
             }
@@ -202,6 +267,12 @@ namespace ASql
                     break;
                 case ASqlManager.DBType.MySql:
                     _mysConn.Open();
+                    break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posConn.Open();
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litConn.Open();
                     break;
                 default:
                     throw new NotSupportedException();
@@ -223,6 +294,10 @@ namespace ASql
                     return (DbTransaction)_oraConn.BeginTransaction(isolationLevel);
                 case ASqlManager.DBType.MySql:
                     return (DbTransaction)_mysConn.BeginTransaction(isolationLevel);
+                case ASqlManager.DBType.PostgreSQL:
+                    return (DbTransaction)_posConn.BeginTransaction(isolationLevel);
+                case ASqlManager.DBType.Sqlite:
+                    return (DbTransaction)_litConn.BeginTransaction(isolationLevel);
                 default:
                     throw new NotSupportedException();
             }
@@ -238,6 +313,10 @@ namespace ASql
                     return _oraConn.CreateCommand();
                 case ASqlManager.DBType.MySql:
                     return _mysConn.CreateCommand();
+                case ASqlManager.DBType.PostgreSQL:
+                    return _posConn.CreateCommand();
+                case ASqlManager.DBType.Sqlite:
+                    return _litConn.CreateCommand();
                 default:
                     throw new NotSupportedException();
             }
@@ -263,6 +342,18 @@ namespace ASql
                     if (_mysConn != null && _mysConn.State != ConnectionState.Closed)
                     {
                         _mysConn.Close();
+                    }
+                    break;
+                case ASqlManager.DBType.PostgreSQL:
+                    if (_posConn != null && _posConn.State != ConnectionState.Closed)
+                    {
+                        _posConn.Close();
+                    }
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    if (_litConn != null && _litConn.State != ConnectionState.Closed)
+                    {
+                        _litConn.Close();
                     }
                     break;
                 default:

@@ -1,14 +1,12 @@
-﻿using MySql.Data.MySqlClient;
+﻿using Microsoft.Data.Sqlite;
+using MySql.Data.MySqlClient;
+using Npgsql;
 using Oracle.ManagedDataAccess.Client;
-using System;
-using System.Collections.Generic;
+
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace ASql
 {
@@ -17,6 +15,8 @@ namespace ASql
         SqlDataAdapter _sqlDataAdapter;
         OracleDataAdapter _oraDataAdapter;
         MySqlDataAdapter _mysDataAdapter;
+        NpgsqlDataAdapter _posDataAdapter;
+        SqliteDataAdapter _litDataAdapter;
         public ASqlDataAdapter() 
         {
             switch (ASqlManager.DataBaseType)
@@ -29,6 +29,12 @@ namespace ASql
                     break;
                 case ASqlManager.DBType.MySql:
                     _mysDataAdapter = new MySqlDataAdapter();
+                    break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posDataAdapter = new NpgsqlDataAdapter();
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litDataAdapter = new SqliteDataAdapter();
                     break;
                 default:
                     throw new NotSupportedException();
@@ -46,6 +52,12 @@ namespace ASql
                     break;
                 case ASqlManager.DBType.MySql:
                     _mysDataAdapter = new MySqlDataAdapter(command._mysCmd);
+                    break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posDataAdapter = new NpgsqlDataAdapter(command._posCmd);
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litDataAdapter = new SqliteDataAdapter(command._litCmd);
                     break;
                 default:
                     throw new NotSupportedException();
@@ -70,6 +82,10 @@ namespace ASql
                         return _oraDataAdapter.Fill(dataSet);
                 case ASqlManager.DBType.MySql:
                     return _mysDataAdapter.Fill(dataSet);
+                case ASqlManager.DBType.PostgreSQL:
+                    return _posDataAdapter.Fill(dataSet);
+                case ASqlManager.DBType.Sqlite:
+                    return _litDataAdapter.Fill(dataSet);
                 default:
                     throw new NotSupportedException();
             }

@@ -1,4 +1,6 @@
-﻿using MySql.Data.MySqlClient;
+﻿using Microsoft.Data.Sqlite;
+using MySql.Data.MySqlClient;
+using Npgsql;
 using Oracle.ManagedDataAccess.Client;
 using System;
 using System.Collections.Generic;
@@ -16,6 +18,8 @@ namespace ASql
         SqlTransaction _sqlTran;
         OracleTransaction _oraTran;
         MySqlTransaction _mysTran;
+        NpgsqlTransaction _posTran;
+        SqliteTransaction _litTran;
         public override IsolationLevel IsolationLevel => GetIsolationLevel();
         private IsolationLevel GetIsolationLevel() 
         {
@@ -27,6 +31,10 @@ namespace ASql
                     return _oraTran.IsolationLevel;
                 case ASqlManager.DBType.MySql:
                     return _mysTran.IsolationLevel;
+                case ASqlManager.DBType.PostgreSQL:
+                    return _posTran.IsolationLevel;
+                case ASqlManager.DBType.Sqlite:
+                    return _litTran.IsolationLevel;
                 default:
                     throw new NotSupportedException();
             }
@@ -42,6 +50,10 @@ namespace ASql
                     return _oraTran.Connection;
                 case ASqlManager.DBType.MySql:
                     return _mysTran.Connection;
+                case ASqlManager.DBType.PostgreSQL:
+                    return _posTran.Connection;
+                case ASqlManager.DBType.Sqlite:
+                    return _litTran.Connection;
                 default:
                     throw new NotSupportedException();
             }
@@ -58,6 +70,12 @@ namespace ASql
                     break;
                 case ASqlManager.DBType.MySql:
                     _mysTran.Commit();
+                    break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posTran.Commit();
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litTran.Commit();
                     break;
                 default:
                     throw new NotSupportedException();
@@ -76,6 +94,12 @@ namespace ASql
                     break;
                 case ASqlManager.DBType.MySql:
                     _mysTran.Rollback();
+                    break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posTran.Rollback();
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litTran.Rollback();
                     break;
                 default:
                     throw new NotSupportedException();

@@ -1,4 +1,6 @@
-﻿using MySql.Data.MySqlClient;
+﻿using Microsoft.Data.Sqlite;
+using MySql.Data.MySqlClient;
+using Npgsql;
 using Oracle.ManagedDataAccess.Client;
 using System;
 using System.Collections.Generic;
@@ -16,6 +18,8 @@ namespace ASql
         internal SqlCommand _sqlCmd;
         internal OracleCommand _oraCmd;
         internal MySqlCommand _mysCmd;
+        internal NpgsqlCommand _posCmd;
+        internal SqliteCommand _litCmd;
         public ASqlCommand()
         {
             switch (ASqlManager.DataBaseType)
@@ -28,6 +32,12 @@ namespace ASql
                     break;
                 case ASqlManager.DBType.MySql:
                     _mysCmd = new MySqlCommand();
+                    break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posCmd = new NpgsqlCommand();
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litCmd = new SqliteCommand();
                     break;
                 default:
                     throw new NotSupportedException();
@@ -46,6 +56,12 @@ namespace ASql
                 case ASqlManager.DBType.MySql:
                     _mysCmd = new MySqlCommand(CommandText);
                     break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posCmd = new NpgsqlCommand(CommandText);
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litCmd = new SqliteCommand(CommandText);
+                    break;
                 default:
                     throw new NotSupportedException();
             }
@@ -63,6 +79,12 @@ namespace ASql
                 case ASqlManager.DBType.MySql:
                     _mysCmd = new MySqlCommand(CommandText, connection.GetMySqlConn());
                     break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posCmd = new NpgsqlCommand(CommandText, connection.GetPosgreSQLConn());
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litCmd = new SqliteCommand(CommandText, connection.GetSqliteConn());
+                    break;
                 default:
                     throw new NotSupportedException();
             }
@@ -79,6 +101,10 @@ namespace ASql
                         return _oraCmd.CommandText;
                     case ASqlManager.DBType.MySql:
                         return _mysCmd.CommandText;
+                    case ASqlManager.DBType.PostgreSQL:
+                        return _posCmd.CommandText;
+                    case ASqlManager.DBType.Sqlite:
+                        return _litCmd.CommandText;
                     default:
                         throw new NotSupportedException();
                 }
@@ -95,6 +121,12 @@ namespace ASql
                     case ASqlManager.DBType.MySql:
                         _mysCmd.CommandText = value;
                         break;
+                    case ASqlManager.DBType.PostgreSQL:
+                        _posCmd.CommandText = value;
+                        break;
+                    case ASqlManager.DBType.Sqlite:
+                        _litCmd.CommandText = value;
+                        break;
                     default:
                         throw new NotSupportedException();
                 }
@@ -110,6 +142,10 @@ namespace ASql
                         return _oraCmd.CommandTimeout;
                     case ASqlManager.DBType.MySql:
                         return _mysCmd.CommandTimeout;
+                    case ASqlManager.DBType.PostgreSQL:
+                        return _posCmd.CommandTimeout;
+                    case ASqlManager.DBType.Sqlite:
+                        return _litCmd.CommandTimeout;
                     default:
                         throw new NotSupportedException();
                 }
@@ -126,6 +162,12 @@ namespace ASql
                     case ASqlManager.DBType.MySql:
                         _mysCmd.CommandTimeout = value;
                         break;
+                    case ASqlManager.DBType.PostgreSQL:
+                        _posCmd.CommandTimeout = value;
+                        break;
+                    case ASqlManager.DBType.Sqlite:
+                        _litCmd.CommandTimeout = value;
+                        break;
                     default:
                         throw new NotSupportedException();
                 }
@@ -141,6 +183,10 @@ namespace ASql
                         return _oraCmd.CommandType;
                     case ASqlManager.DBType.MySql:
                         return _mysCmd.CommandType;
+                    case ASqlManager.DBType.PostgreSQL:
+                        return _posCmd.CommandType;
+                    case ASqlManager.DBType.Sqlite:
+                        return _litCmd.CommandType;
                     default:
                         throw new NotSupportedException();
                 }
@@ -157,6 +203,12 @@ namespace ASql
                     case ASqlManager.DBType.MySql:
                         _mysCmd.CommandType = value;
                         break;
+                    case ASqlManager.DBType.PostgreSQL:
+                        _posCmd.CommandType = value;
+                        break;
+                    case ASqlManager.DBType.Sqlite:
+                        _litCmd.CommandType = value;
+                        break;
                     default:
                         throw new NotSupportedException();
                 }
@@ -172,6 +224,10 @@ namespace ASql
                         return _oraCmd.DesignTimeVisible;
                     case ASqlManager.DBType.MySql:
                         return _mysCmd.DesignTimeVisible;
+                    case ASqlManager.DBType.PostgreSQL:
+                        return _posCmd.DesignTimeVisible;
+                    case ASqlManager.DBType.Sqlite:
+                        return _litCmd.DesignTimeVisible;
                     default:
                         throw new NotSupportedException();
                 }
@@ -188,6 +244,12 @@ namespace ASql
                     case ASqlManager.DBType.MySql:
                         _mysCmd.DesignTimeVisible = value;
                         break;
+                    case ASqlManager.DBType.PostgreSQL:
+                        _posCmd.DesignTimeVisible = value;
+                        break;
+                    case ASqlManager.DBType.Sqlite:
+                        _litCmd.DesignTimeVisible = value;
+                        break;
                     default:
                         throw new NotSupportedException();
                 }
@@ -203,6 +265,10 @@ namespace ASql
                         return _oraCmd.UpdatedRowSource;
                     case ASqlManager.DBType.MySql:
                         return _mysCmd.UpdatedRowSource;
+                    case ASqlManager.DBType.PostgreSQL:
+                        return _posCmd.UpdatedRowSource;
+                    case ASqlManager.DBType.Sqlite:
+                        return _litCmd.UpdatedRowSource;
                     default:
                         throw new NotSupportedException();
                 }
@@ -219,6 +285,12 @@ namespace ASql
                     case ASqlManager.DBType.MySql:
                         _mysCmd.UpdatedRowSource = value;
                         break;
+                    case ASqlManager.DBType.PostgreSQL:
+                        _posCmd.UpdatedRowSource = value;
+                        break;
+                    case ASqlManager.DBType.Sqlite:
+                        _litCmd.UpdatedRowSource = value;
+                        break;
                     default:
                         throw new NotSupportedException();
                 }
@@ -234,6 +306,10 @@ namespace ASql
                         return _oraCmd.Connection;
                     case ASqlManager.DBType.MySql:
                         return _mysCmd.Connection;
+                    case ASqlManager.DBType.PostgreSQL:
+                        return _posCmd.Connection;
+                    case ASqlManager.DBType.Sqlite:
+                        return _litCmd.Connection;
                     default:
                         throw new NotSupportedException();
                 }
@@ -249,6 +325,12 @@ namespace ASql
                         break;
                     case ASqlManager.DBType.MySql:
                         _mysCmd.Connection = (MySqlConnection)value;
+                        break;
+                    case ASqlManager.DBType.PostgreSQL:
+                        _posCmd.Connection = (NpgsqlConnection)value;
+                        break;
+                    case ASqlManager.DBType.Sqlite:
+                        _litCmd.Connection = (SqliteConnection)value;
                         break;
                     default:
                         throw new NotSupportedException();
@@ -267,6 +349,10 @@ namespace ASql
                     return _oraCmd.Parameters;
                 case ASqlManager.DBType.MySql:
                     return _mysCmd.Parameters;
+                case ASqlManager.DBType.PostgreSQL:
+                    return _posCmd.Parameters;
+                case ASqlManager.DBType.Sqlite:
+                    return _litCmd.Parameters;
                 default:
                     throw new NotSupportedException();
             }
@@ -282,6 +368,10 @@ namespace ASql
                         return _oraCmd.Transaction;
                     case ASqlManager.DBType.MySql:
                         return _mysCmd.Transaction;
+                    case ASqlManager.DBType.PostgreSQL:
+                        return _posCmd.Transaction;
+                    case ASqlManager.DBType.Sqlite:
+                        return _litCmd.Transaction;
                     default:
                         throw new NotSupportedException();
                 }
@@ -297,6 +387,12 @@ namespace ASql
                         break;
                     case ASqlManager.DBType.MySql:
                         _mysCmd.Transaction = (MySqlTransaction)value;
+                        break;
+                    case ASqlManager.DBType.PostgreSQL:
+                        _posCmd.Transaction = (NpgsqlTransaction)value;
+                        break;
+                    case ASqlManager.DBType.Sqlite:
+                        _litCmd.Transaction = (SqliteTransaction)value;
                         break;
                     default:
                         throw new NotSupportedException();
@@ -317,6 +413,12 @@ namespace ASql
                 case ASqlManager.DBType.MySql:
                     _mysCmd.Cancel();
                     break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posCmd.Cancel();
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litCmd.Cancel();
+                    break;
                 default:
                     throw new NotSupportedException();
             }
@@ -333,6 +435,10 @@ namespace ASql
                     return _oraCmd.ExecuteNonQuery();
                 case ASqlManager.DBType.MySql:
                     return _mysCmd.ExecuteNonQuery();
+                case ASqlManager.DBType.PostgreSQL:
+                    return _posCmd.ExecuteNonQuery();
+                case ASqlManager.DBType.Sqlite:
+                    return _litCmd.ExecuteNonQuery();
                 default:
                     throw new NotSupportedException();
             }
@@ -348,6 +454,10 @@ namespace ASql
                     return _oraCmd.ExecuteScalar();
                 case ASqlManager.DBType.MySql:
                     return _mysCmd.ExecuteScalar();
+                case ASqlManager.DBType.PostgreSQL:
+                    return _posCmd.ExecuteScalar();
+                case ASqlManager.DBType.Sqlite:
+                    return _litCmd.ExecuteScalar();
                 default:
                     throw new NotSupportedException();
             }
@@ -366,6 +476,12 @@ namespace ASql
                 case ASqlManager.DBType.MySql:
                     _mysCmd.Prepare();
                     break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posCmd.Prepare();
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litCmd.Prepare();
+                    break;
                 default:
                     throw new NotSupportedException();
             }
@@ -381,6 +497,10 @@ namespace ASql
                     return _oraCmd.CreateParameter();
                 case ASqlManager.DBType.MySql:
                     return _mysCmd.CreateParameter();
+                case ASqlManager.DBType.PostgreSQL:
+                    return _posCmd.CreateParameter();
+                case ASqlManager.DBType.Sqlite:
+                    return _litCmd.CreateParameter();
                 default:
                     throw new NotSupportedException();
             }
@@ -397,6 +517,10 @@ namespace ASql
                     return _oraCmd.ExecuteReader(behavior);
                 case ASqlManager.DBType.MySql:
                     return _mysCmd.ExecuteReader(behavior);
+                case ASqlManager.DBType.PostgreSQL:
+                    return _posCmd.ExecuteReader(behavior);
+                case ASqlManager.DBType.Sqlite:
+                    return _litCmd.ExecuteReader(behavior);
                 default:
                     throw new NotSupportedException();
             }
@@ -446,6 +570,34 @@ namespace ASql
                         mysPar.SourceColumn = asqlPar.SourceColumn;
                         mysPar.Direction = asqlPar.Direction;
                         this.Parameters.Add(mysPar);
+                    }
+                    break;
+                case ASqlManager.DBType.PostgreSQL:
+                    foreach (ASqlParameter asqlPar in this.aSqlParameters)
+                    {
+                        NpgsqlParameter posPar = new NpgsqlParameter();
+                        posPar.ParameterName = asqlPar.ParameterName;
+                        posPar.Value = asqlPar.Value;
+                        posPar.DbType = asqlPar.DbType;
+                        posPar.Size = asqlPar.Size;
+                        posPar.IsNullable = asqlPar.IsNullable;
+                        posPar.SourceColumn = asqlPar.SourceColumn;
+                        posPar.Direction = asqlPar.Direction;
+                        this.Parameters.Add(posPar);
+                    }
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    foreach (ASqlParameter asqlPar in this.aSqlParameters)
+                    {
+                        SqliteParameter litPar = new SqliteParameter();
+                        litPar.ParameterName = asqlPar.ParameterName;
+                        litPar.Value = asqlPar.Value;
+                        litPar.DbType = asqlPar.DbType;
+                        litPar.Size = asqlPar.Size;
+                        litPar.IsNullable = asqlPar.IsNullable;
+                        litPar.SourceColumn = asqlPar.SourceColumn;
+                        litPar.Direction = asqlPar.Direction;
+                        this.Parameters.Add(litPar);
                     }
                     break;
                 default:

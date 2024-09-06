@@ -13,7 +13,10 @@ namespace ASql
         {
             SqlServer,
             Oracle,
-            MySql
+            MySql,
+            PostgreSQL,
+            Sqlite
+            
         }
         public static DBType DataBaseType { get; set; }
         
