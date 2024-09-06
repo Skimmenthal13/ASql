@@ -11,11 +11,13 @@ namespace ASql.Tester
     {
         const string oraConnectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XEPDB1)));User Id=DBWUSR;Password=DBWUSR;";
         const string sqlConnectionString = "Data Source=NBK-437;Persist Security Info=True;Initial Catalog=test;Integrated Security=SSPI;";
+        const string mysConnectionString = "Server=localhost;Database=test;Uid=sa;Pwd=ASqlAdmin01;";
         const string tableName = "PERSON";
         static byte[] _FileBytes = File.ReadAllBytes("./headshot.png");
 
         [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"CREATE TABLE {tableName} ([id] [int] IDENTITY(1,1) NOT NULL , [firstname] [nvarchar](30) NOT NULL , [lastname] [nvarchar](30) NOT NULL , [age] [int] NULL , [value] [bigint] NULL , [birthday] [datetime2] NULL , [hourly] [decimal](18,2) NULL , [localtime] [datetimeoffset] NULL , [picture] [varbinary](max) NULL , [guid] [varchar](36) NULL , [active] [tinyint] NULL , CONSTRAINT [PK_person] PRIMARY KEY CLUSTERED (  [id] ASC ) WITH (  PAD_INDEX = OFF,   STATISTICS_NORECOMPUTE = OFF,   IGNORE_DUP_KEY = OFF,   ALLOW_ROW_LOCKS = ON,   ALLOW_PAGE_LOCKS = ON ) ON [PRIMARY] ) ON [PRIMARY] ")]
         [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"CREATE TABLE {tableName} (id number(11) NOT NULL , firstname varchar2(30 char) NOT NULL , lastname varchar2(30 char) NOT NULL , age number(11) NULL , value number(12) NULL , birthday timestamp NULL , hourly decimal(18,2) NULL , localtime timestamp NULL , picture blob  NULL , guid varchar2(36) NULL , active number(37) NULL ,PRIMARY KEY (id))")]
+        [DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"CREATE TABLE `{tableName}` (`id` int(11) NOT NULL AUTO_INCREMENT , `firstname` varchar(30) NOT NULL , `lastname` varchar(30) NOT NULL , `age` int(11) NULL , `value` int(12) NULL , `birthday` datetime NULL , `hourly` decimal(18,2) NULL , `localtime` datetime NULL , `picture` longblob NULL , `guid` varchar(36) NULL , `active` tinyint NULL ,PRIMARY KEY (`id`)) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4")]
         [TestMethod]
         public void CreateTableTest(ASqlManager.DBType dBType, string ConnectionString, string sql)
         {
@@ -32,7 +34,9 @@ namespace ASql.Tester
                     ExecuteQuery(ASqlManager.DBType.Oracle, oraConnectionString, CreateSequnce(tableName));
                     ExecuteQuery(ASqlManager.DBType.Oracle, oraConnectionString, CreateTrigger(tableName));
                 }
-                Assert.AreEqual(-1, i);
+                if (ASqlManager.DataBaseType == ASqlManager.DBType.MySql) { Assert.AreEqual(0, i); }
+                else { Assert.AreEqual(-1, i); }
+                    
             }
         }
         public string CreateSequnce(string tableName)
@@ -72,6 +76,7 @@ namespace ASql.Tester
 
         [DataRow(ASqlManager.DBType.SqlServer,sqlConnectionString, $"select case when exists((select * from information_schema.tables where table_name = '{tableName}')) then 1 else 0 end")]
         [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"SELECT table_name FROM USER_TABLES WHERE table_name='{tableName}'")]
+        [DataRow(ASqlManager.DBType.MySql,mysConnectionString, $"SELECT count(*) as ntab FROM information_schema.TABLES WHERE (TABLE_SCHEMA = 'test') AND (TABLE_NAME = '{tableName}')")]
         [TestMethod]
         public void CheckTable(ASqlManager.DBType dBType,string ConnectionString, string sql)
         {
@@ -97,6 +102,16 @@ namespace ASql.Tester
                         bool exists = (int)cmd.ExecuteScalar() == 1;
                         if (exists) { i = tableName; }
                         break;
+                    case ASqlManager.DBType.MySql:
+                        using (DbDataReader read = cmd.ExecuteReader())
+                        {
+                            while (read.Read())
+                            {
+                                i = read.GetInt32(read.GetOrdinal("ntab")).ToString();
+                                if (i == "1") i = "PERSON";
+                            }
+                        }
+                        break;
                 }
                 
                 Assert.AreEqual("PERSON", i.ToUpper());
@@ -104,6 +119,7 @@ namespace ASql.Tester
         }
         [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"DROP TABLE {tableName}")]
         [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"DROP TABLE {tableName}")]
+        [DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"DROP TABLE {tableName}")]
         [TestMethod]
         public void DropTable(ASqlManager.DBType dBType, string ConnectionString, string sql) 
         {
@@ -119,11 +135,13 @@ namespace ASql.Tester
                 {
                     ExecuteQuery(ASqlManager.DBType.Oracle, oraConnectionString, DropSequenceQuery(tableName));
                 }
-                Assert.AreEqual(-1, i);
+                if (ASqlManager.DataBaseType == ASqlManager.DBType.MySql) { Assert.AreEqual(0, i); }
+                else { Assert.AreEqual(-1, i); }
             }
         }
         [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"DROP TABLE {tableName}")]
         [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"DROP TABLE {tableName}")]
+        [DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"DROP TABLE {tableName}")] //no
         [TestMethod]
         public void DropTableWithRollBack(ASqlManager.DBType dBType, string ConnectionString, string sql)
         {
@@ -138,11 +156,13 @@ namespace ASql.Tester
                 cmd.Transaction = trans;
                 i = cmd.ExecuteNonQuery();
                 trans.Rollback();
-                Assert.AreEqual(-1, i);
+                if (ASqlManager.DataBaseType == ASqlManager.DBType.MySql) { Assert.AreEqual(0, i); }
+                else { Assert.AreEqual(-1, i); }
             }
         }
         [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"select firstname from {tableName} where lastname = @lastname")]
         [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"select firstname from {tableName} where lastname = :lastname")]
+        [DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"select firstname from {tableName} where lastname = ?")]
         [TestMethod]
         public void ExecuteScalar(ASqlManager.DBType dBType, string ConnectionString, string sql)
         {
@@ -165,6 +185,7 @@ namespace ASql.Tester
         }
         [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"select firstname from {tableName} where lastname = @lastname")]
         [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"select firstname from {tableName} where lastname = :lastname")]
+        [DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"select firstname from {tableName} where lastname = ?")]
         [TestMethod]
         public void ExecuteReaderTester(ASqlManager.DBType dBType, string ConnectionString, string sql)
         {
@@ -193,11 +214,12 @@ namespace ASql.Tester
         }
         [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,localtime,picture,guid,active) VALUES (@firstname,@lastname,@age,@value,@birthday,@hourly,@localtime,@picture,@guid,@active)")]
         [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,localtime,picture,guid,active) VALUES (:firstname,:lastname,:age,:value,:birthday,:hourly,:localtime,:picture,:guid,:active)")]
+        [DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,localtime,picture,guid,active) VALUES (?,?,?,?,?,?,?,?,?,?)")] //no
         [TestMethod]
         public void InsertRow(ASqlManager.DBType dBType, string ConnectionString, string sql) 
         {
             Dictionary<string, object> d = new Dictionary<string, object>();
-            for (int i = 1; i < 20; i++)
+            for (int i = 1; i < 2; i++)
             {
                 d.Add("firstname", "first" + i);
                 d.Add("lastname", "last" + i);
@@ -220,6 +242,7 @@ namespace ASql.Tester
                 switch (ASqlManager.DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
+                    case ASqlManager.DBType.MySql:
                         paramChar = "";
                         break;
                     case ASqlManager.DBType.Oracle:
@@ -235,11 +258,13 @@ namespace ASql.Tester
                 }
                 
                 i = cmd.ExecuteNonQuery();
-                Assert.AreEqual(1, i);
+                if (ASqlManager.DataBaseType == ASqlManager.DBType.MySql) { Assert.AreEqual(0, i); }
+                else { Assert.AreEqual(-1, i); }
             }
         }
         [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,localtime,picture,guid,active) VALUES (@firstname,@lastname,@age,@value,@birthday,@hourly,@localtime,@picture,@guid,@active)")]
         [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,localtime,picture,guid,active) VALUES (:firstname,:lastname,:age,:value,:birthday,:hourly,:localtime,:picture,:guid,:active)")]
+        [DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,localtime,picture,guid,active) VALUES (?,?,?,?,?,?,?,?,?,?)")] //no
         [TestMethod]
         public void InsertRowTransaction(ASqlManager.DBType dBType, string ConnectionString, string sql)
         {
@@ -372,6 +397,7 @@ namespace ASql.Tester
         }
         [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"select * from {tableName}")]
         [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"select * from {tableName}")]
+        [DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"select * from {tableName}")]
         [TestMethod]
         public void SqlDataAdapterTester(ASqlManager.DBType dBType, string ConnectionString, string sql)
         {

@@ -12,7 +12,8 @@ namespace ASql
         public enum DBType
         {
             SqlServer,
-            Oracle
+            Oracle,
+            MySql
         }
         public static DBType DataBaseType { get; set; }
         

@@ -186,7 +186,7 @@ namespace ASql
             if (newName.Length != 0)
             {
                 if (m_nameToIndex.ContainsKey(newName))
-                    throw new ASqlException($"There is already a parameter with the name '{parameter.ParameterName}' in this collection.");
+                    throw new Exception($"There is already a parameter with the name '{parameter.ParameterName}' in this collection.");
                 m_nameToIndex[newName] = index;
             }
         }
@@ -194,7 +194,7 @@ namespace ASql
         private void AddParameter(ASqlParameter parameter, int index)
         {
             if (!string.IsNullOrEmpty(parameter.NormalizedParameterName) && NormalizedIndexOf(parameter.NormalizedParameterName) != -1)
-                throw new ASqlException($"Parameter '{parameter.ParameterName}' has already been defined.");
+                throw new Exception($"Parameter '{parameter.ParameterName}' has already been defined.");
             if (index < m_parameters.Count)
             {
                 foreach (var pair in m_nameToIndex.ToList())

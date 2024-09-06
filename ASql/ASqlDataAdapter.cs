@@ -1,4 +1,5 @@
-﻿using Oracle.ManagedDataAccess.Client;
+﻿using MySql.Data.MySqlClient;
+using Oracle.ManagedDataAccess.Client;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -14,7 +15,8 @@ namespace ASql
     public class ASqlDataAdapter : DbDataAdapter, IDbDataAdapter, IDataAdapter, ICloneable
     {
         SqlDataAdapter _sqlDataAdapter;
-        OracleDataAdapter _oracleDataAdapter;
+        OracleDataAdapter _oraDataAdapter;
+        MySqlDataAdapter _mysDataAdapter;
         public ASqlDataAdapter() 
         {
             switch (ASqlManager.DataBaseType)
@@ -23,7 +25,10 @@ namespace ASql
                     _sqlDataAdapter = new SqlDataAdapter();
                     break;
                 case ASqlManager.DBType.Oracle:
-                    _oracleDataAdapter = new OracleDataAdapter();
+                    _oraDataAdapter = new OracleDataAdapter();
+                    break;
+                case ASqlManager.DBType.MySql:
+                    _mysDataAdapter = new MySqlDataAdapter();
                     break;
                 default:
                     throw new NotSupportedException();
@@ -37,7 +42,10 @@ namespace ASql
                     _sqlDataAdapter = new SqlDataAdapter(command._sqlCmd);
                     break;
                 case ASqlManager.DBType.Oracle:
-                    _oracleDataAdapter = new OracleDataAdapter(command._oraCmd);
+                    _oraDataAdapter = new OracleDataAdapter(command._oraCmd);
+                    break;
+                case ASqlManager.DBType.MySql:
+                    _mysDataAdapter = new MySqlDataAdapter(command._mysCmd);
                     break;
                 default:
                     throw new NotSupportedException();
@@ -59,7 +67,9 @@ namespace ASql
                 case ASqlManager.DBType.SqlServer:
                        return _sqlDataAdapter.Fill(dataSet);
                 case ASqlManager.DBType.Oracle:
-                        return _oracleDataAdapter.Fill(dataSet);
+                        return _oraDataAdapter.Fill(dataSet);
+                case ASqlManager.DBType.MySql:
+                    return _mysDataAdapter.Fill(dataSet);
                 default:
                     throw new NotSupportedException();
             }

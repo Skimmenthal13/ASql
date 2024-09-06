@@ -1,4 +1,5 @@
-﻿using Oracle.ManagedDataAccess.Client;
+﻿using MySql.Data.MySqlClient;
+using Oracle.ManagedDataAccess.Client;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -14,6 +15,7 @@ namespace ASql
     {
         SqlParameter _sqlPrm;
         OracleParameter _oraPrm;
+        MySqlParameter _mysPrm;
         internal ASqlParameterCollection? ParameterCollection { get; set; }
         public ASqlParameter() 
         {
@@ -24,6 +26,9 @@ namespace ASql
                     break;
                 case ASqlManager.DBType.Oracle:
                     _oraPrm = new OracleParameter();
+                    break;
+                case ASqlManager.DBType.MySql:
+                    _mysPrm = new MySqlParameter();
                     break;
                 default:
                     throw new NotSupportedException();
@@ -39,6 +44,9 @@ namespace ASql
                 case ASqlManager.DBType.Oracle:
                     _oraPrm = new OracleParameter(parameterName, value);
                     break;
+                case ASqlManager.DBType.MySql:
+                    _mysPrm = new MySqlParameter(parameterName, value);
+                    break;
                 default:
                     throw new NotSupportedException();
             }
@@ -52,6 +60,9 @@ namespace ASql
                     break;
                 case ASqlManager.DBType.Oracle:
                     _oraPrm = new OracleParameter(parameterName, type);
+                    break;
+                case ASqlManager.DBType.MySql:
+                    _mysPrm = new MySqlParameter(parameterName, type);
                     break;
                 default:
                     throw new NotSupportedException();
@@ -67,6 +78,9 @@ namespace ASql
                 case ASqlManager.DBType.Oracle:
                     _oraPrm = new OracleParameter(parameterName, (OracleDbType)type, size);
                     break;
+                case ASqlManager.DBType.MySql:
+                    _mysPrm = new MySqlParameter(parameterName, (MySqlDbType)type, size);
+                    break;
                 default:
                     throw new NotSupportedException();
             }
@@ -81,6 +95,9 @@ namespace ASql
                 case ASqlManager.DBType.Oracle:
                     _oraPrm = new OracleParameter(parameterName, (OracleDbType)type, size, sourceColumn);
                     break;
+                case ASqlManager.DBType.MySql:
+                    _mysPrm = new MySqlParameter(parameterName, (MySqlDbType)type, size, sourceColumn);
+                    break;
                 default:
                     throw new NotSupportedException();
             }
@@ -94,6 +111,8 @@ namespace ASql
                         return _sqlPrm.DbType;
                     case ASqlManager.DBType.Oracle:
                         return _oraPrm.DbType;
+                    case ASqlManager.DBType.MySql:
+                        return _mysPrm.DbType;
                     default:
                         throw new NotSupportedException();
                 }
@@ -106,6 +125,9 @@ namespace ASql
                         break;
                     case ASqlManager.DBType.Oracle:
                         _oraPrm.DbType = value;
+                        break;
+                    case ASqlManager.DBType.MySql:
+                        _mysPrm.DbType = value;
                         break;
                     default:
                         throw new NotSupportedException();
@@ -122,6 +144,8 @@ namespace ASql
                         return _sqlPrm.Direction;
                     case ASqlManager.DBType.Oracle:
                         return _oraPrm.Direction;
+                    case ASqlManager.DBType.MySql:
+                        return _mysPrm.Direction;
                     default:
                         throw new NotSupportedException();
                 }
@@ -134,6 +158,9 @@ namespace ASql
                         break;
                     case ASqlManager.DBType.Oracle:
                         _oraPrm.Direction = value;
+                        break;
+                    case ASqlManager.DBType.MySql:
+                        _mysPrm.Direction = value;
                         break;
                     default:
                         throw new NotSupportedException();
@@ -149,6 +176,8 @@ namespace ASql
                         return _sqlPrm.IsNullable;
                     case ASqlManager.DBType.Oracle:
                         return _oraPrm.IsNullable;
+                    case ASqlManager.DBType.MySql:
+                        return _mysPrm.IsNullable;
                     default:
                         throw new NotSupportedException();
                 }
@@ -161,6 +190,9 @@ namespace ASql
                         break;
                     case ASqlManager.DBType.Oracle:
                         _oraPrm.IsNullable = value;
+                        break;
+                    case ASqlManager.DBType.MySql:
+                        _mysPrm.IsNullable = value;
                         break;
                     default:
                         throw new NotSupportedException();
@@ -176,6 +208,8 @@ namespace ASql
                         return _sqlPrm.ParameterName;
                     case ASqlManager.DBType.Oracle:
                         return _oraPrm.ParameterName;
+                    case ASqlManager.DBType.MySql:
+                        return _mysPrm.ParameterName;
                     default:
                         throw new NotSupportedException();
                 }
@@ -188,6 +222,9 @@ namespace ASql
                         break;
                     case ASqlManager.DBType.Oracle:
                         _oraPrm.ParameterName = value;
+                        break;
+                    case ASqlManager.DBType.MySql:
+                        _mysPrm.ParameterName = value;
                         break;
                     default:
                         throw new NotSupportedException();
@@ -203,6 +240,8 @@ namespace ASql
                         return _sqlPrm.Size;
                     case ASqlManager.DBType.Oracle:
                         return _oraPrm.Size;
+                    case ASqlManager.DBType.MySql:
+                        return _mysPrm.Size;
                     default:
                         throw new NotSupportedException();
                 }
@@ -215,6 +254,9 @@ namespace ASql
                         break;
                     case ASqlManager.DBType.Oracle:
                         _oraPrm.Size = value;
+                        break;
+                    case ASqlManager.DBType.MySql:
+                        _mysPrm.Size = value;
                         break;
                     default:
                         throw new NotSupportedException();
@@ -230,6 +272,8 @@ namespace ASql
                         return _sqlPrm.SourceColumn;
                     case ASqlManager.DBType.Oracle:
                         return _oraPrm.SourceColumn;
+                    case ASqlManager.DBType.MySql:
+                        return _mysPrm.SourceColumn;
                     default:
                         throw new NotSupportedException();
                 }
@@ -242,6 +286,9 @@ namespace ASql
                         break;
                     case ASqlManager.DBType.Oracle:
                         _oraPrm.SourceColumn = value;
+                        break;
+                    case ASqlManager.DBType.MySql:
+                        _mysPrm.SourceColumn = value;
                         break;
                     default:
                         throw new NotSupportedException();
@@ -257,6 +304,8 @@ namespace ASql
                         return _sqlPrm.SourceColumnNullMapping;
                     case ASqlManager.DBType.Oracle:
                         return _oraPrm.SourceColumnNullMapping;
+                    case ASqlManager.DBType.MySql:
+                        return _mysPrm.SourceColumnNullMapping;
                     default:
                         throw new NotSupportedException();
                 }
@@ -269,6 +318,9 @@ namespace ASql
                         break;
                     case ASqlManager.DBType.Oracle:
                         _oraPrm.SourceColumnNullMapping = value;
+                        break;
+                    case ASqlManager.DBType.MySql:
+                        _mysPrm.SourceColumnNullMapping = value;
                         break;
                     default:
                         throw new NotSupportedException();
@@ -284,6 +336,8 @@ namespace ASql
                         return _sqlPrm.Value;
                     case ASqlManager.DBType.Oracle:
                         return _oraPrm.Value;
+                    case ASqlManager.DBType.MySql:
+                        return _mysPrm.Value;
                     default:
                         throw new NotSupportedException();
                 }
@@ -296,6 +350,9 @@ namespace ASql
                         break;
                     case ASqlManager.DBType.Oracle:
                         _oraPrm.Value = value;
+                        break;
+                    case ASqlManager.DBType.MySql:
+                        _mysPrm.Value = value;
                         break;
                     default:
                         throw new NotSupportedException();
@@ -314,6 +371,9 @@ namespace ASql
                     break;
                 case ASqlManager.DBType.Oracle:
                     _oraPrm.ResetDbType();
+                    break;
+                case ASqlManager.DBType.MySql:
+                    _mysPrm.ResetDbType();
                     break;
                 default:
                     throw new NotSupportedException();
