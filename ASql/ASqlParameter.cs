@@ -149,7 +149,7 @@ namespace ASql
                     case ASqlManager.DBType.MySql:
                         return _mysPrm.DbType;
                     case ASqlManager.DBType.PostgreSQL:
-                        return _oraPrm.DbType;
+                        return _posPrm.DbType;
                     case ASqlManager.DBType.Sqlite:
                         return _litPrm.DbType;
                     default:
