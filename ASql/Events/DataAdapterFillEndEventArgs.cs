@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ASql.Events
 {
-    public class ExecuteNonQueryEndEventArgs : EventArgs
+    public class DataAdapterFillEndEventArgs : EventArgs
     {
         /// <summary>
         /// Query.

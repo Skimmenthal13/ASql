@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using ASql.Events;
+using Microsoft.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using Npgsql;
 using Oracle.ManagedDataAccess.Client;
@@ -17,6 +18,9 @@ namespace ASql
         MySqlDataAdapter _mysDataAdapter;
         NpgsqlDataAdapter _posDataAdapter;
         SqliteDataAdapter _litDataAdapter;
+
+        ASqlCommand _cmd;
+
         public ASqlDataAdapter() 
         {
             switch (ASqlManager.DataBaseType)
@@ -42,6 +46,7 @@ namespace ASql
         }
         public ASqlDataAdapter(ASqlCommand command) 
         {
+            _cmd = command;
             switch (ASqlManager.DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
@@ -74,21 +79,35 @@ namespace ASql
 
         public int Fill(DataSet dataSet)
         {
+            DateTime startTime = DateTime.Now;
+            int res = 0;
+            string query = _cmd.CommandText;
             switch (ASqlManager.DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
-                       return _sqlDataAdapter.Fill(dataSet);
+                       res = _sqlDataAdapter.Fill(dataSet);
+                    break;
                 case ASqlManager.DBType.Oracle:
-                        return _oraDataAdapter.Fill(dataSet);
+                       res = _oraDataAdapter.Fill(dataSet);
+                    break;
                 case ASqlManager.DBType.MySql:
-                    return _mysDataAdapter.Fill(dataSet);
+                       res = _mysDataAdapter.Fill(dataSet);
+                    break;
                 case ASqlManager.DBType.PostgreSQL:
-                    return _posDataAdapter.Fill(dataSet);
+                       res = _posDataAdapter.Fill(dataSet);
+                    break;
                 case ASqlManager.DBType.Sqlite:
-                    return _litDataAdapter.Fill(dataSet);
+                       res = _litDataAdapter.Fill(dataSet);
+                    break;
                 default:
                     throw new NotSupportedException();
             }
+            double totalMs = (DateTime.Now - startTime).TotalMilliseconds;
+            OnDataAdapterFillEnd?.Invoke(this, new DataAdapterFillEndEventArgs { Query = query, TotalMilliseconds = totalMs, aSqlParameters = _cmd.aSqlParameters });
+            OnGenericQueryEnd?.Invoke(this, new GenericQueryEndEventArgs { Query = query, TotalMilliseconds = totalMs, aSqlParameters = _cmd.aSqlParameters });
+            return res;
         }
+        public event EventHandler<DataAdapterFillEndEventArgs> OnDataAdapterFillEnd;
+        public event EventHandler<GenericQueryEndEventArgs> OnGenericQueryEnd;
     }
 }

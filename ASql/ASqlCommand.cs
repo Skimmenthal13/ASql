@@ -1,4 +1,4 @@
-﻿using ASql.events;
+﻿using ASql.Events;
 using Microsoft.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using Npgsql;
@@ -16,7 +16,6 @@ namespace ASql
 {
     public class ASqlCommand : DbCommand
     {
-        public event EventHandler<ExecuteNonQueryEndEventArgs> OnExecuteNonQueryEnd;
         internal SqlCommand _sqlCmd;
         internal OracleCommand _oraCmd;
         internal MySqlCommand _mysCmd;
@@ -429,57 +428,65 @@ namespace ASql
         public override int ExecuteNonQuery()
         {
             PopulateParameters();
-            string query = "";
+            string query = this.CommandText;
             DateTime startTime = DateTime.Now;
             int res = 0;
             switch (ASqlManager.DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
-                    query = _sqlCmd.CommandText;
                     res = _sqlCmd.ExecuteNonQuery();
                     break;
                 case ASqlManager.DBType.Oracle:
-                    query = _oraCmd.CommandText;
                     res = _oraCmd.ExecuteNonQuery();
                     break;
                 case ASqlManager.DBType.MySql:
-                    query = _mysCmd.CommandText;
                     res = _mysCmd.ExecuteNonQuery();
                     break;
                 case ASqlManager.DBType.PostgreSQL:
-                    query = _posCmd.CommandText;
                     res = _posCmd.ExecuteNonQuery();
                     break;
                 case ASqlManager.DBType.Sqlite:
-                    query = _litCmd.CommandText;
                     res = _litCmd.ExecuteNonQuery();
                     break;
                 default:
                     throw new NotSupportedException();
             }
             double totalMs = (DateTime.Now - startTime).TotalMilliseconds;
-            OnExecuteNonQueryEnd?.Invoke(this, new ExecuteNonQueryEndEventArgs { Query = query, TotalMilliseconds = totalMs });
+            OnExecuteNonQueryEnd?.Invoke(this, new ExecuteNonQueryEndEventArgs { Query = query, TotalMilliseconds = totalMs, aSqlParameters = this.aSqlParameters });
+            OnGenericQueryEnd?.Invoke(this, new GenericQueryEndEventArgs { Query = query, TotalMilliseconds = totalMs, aSqlParameters = this.aSqlParameters });
             return res;
             
         }
         public override object ExecuteScalar()
         {
             PopulateParameters();
+            string query = this.CommandText;
+            DateTime startTime = DateTime.Now;
+            object res = null;
             switch (ASqlManager.DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
-                    return _sqlCmd.ExecuteScalar();
+                    res = _sqlCmd.ExecuteScalar();
+                    break;
                 case ASqlManager.DBType.Oracle:
-                    return _oraCmd.ExecuteScalar();
+                    res = _oraCmd.ExecuteScalar();
+                    break;
                 case ASqlManager.DBType.MySql:
-                    return _mysCmd.ExecuteScalar();
+                    res = _mysCmd.ExecuteScalar();
+                    break;
                 case ASqlManager.DBType.PostgreSQL:
-                    return _posCmd.ExecuteScalar();
+                    res = _posCmd.ExecuteScalar();
+                    break;
                 case ASqlManager.DBType.Sqlite:
-                    return _litCmd.ExecuteScalar();
+                    res = _litCmd.ExecuteScalar();
+                    break;
                 default:
                     throw new NotSupportedException();
             }
+            double totalMs = (DateTime.Now - startTime).TotalMilliseconds;
+            OnExecuteScalarEnd?.Invoke(this, new ExecuteScalarEndEventArgs { Query = query, TotalMilliseconds = totalMs, aSqlParameters = this.aSqlParameters });
+            OnGenericQueryEnd?.Invoke(this, new GenericQueryEndEventArgs { Query = query, TotalMilliseconds = totalMs, aSqlParameters = this.aSqlParameters });
+            return res;
         }
 
         public override void Prepare()
@@ -528,21 +535,33 @@ namespace ASql
         protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
         {
             PopulateParameters();
+            string query = this.CommandText;
+            DateTime startTime = DateTime.Now;
+            DbDataReader res = null;
             switch (ASqlManager.DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
-                    return _sqlCmd.ExecuteReader(behavior);
+                    res = _sqlCmd.ExecuteReader(behavior);
+                    break;
                 case ASqlManager.DBType.Oracle:
-                    return _oraCmd.ExecuteReader(behavior);
+                    res = _oraCmd.ExecuteReader(behavior);
+                    break;
                 case ASqlManager.DBType.MySql:
-                    return _mysCmd.ExecuteReader(behavior);
+                    res = _mysCmd.ExecuteReader(behavior);
+                    break;
                 case ASqlManager.DBType.PostgreSQL:
-                    return _posCmd.ExecuteReader(behavior);
+                    res = _posCmd.ExecuteReader(behavior);
+                    break;
                 case ASqlManager.DBType.Sqlite:
-                    return _litCmd.ExecuteReader(behavior);
+                    res = _litCmd.ExecuteReader(behavior);
+                    break;
                 default:
                     throw new NotSupportedException();
             }
+            double totalMs = (DateTime.Now - startTime).TotalMilliseconds;
+            OnExecuteReaderEnd?.Invoke(this, new ExecuteReaderEndEventArgs { Query = query, TotalMilliseconds = totalMs, aSqlParameters = this.aSqlParameters });
+            OnGenericQueryEnd?.Invoke(this, new GenericQueryEndEventArgs { Query = query, TotalMilliseconds = totalMs, aSqlParameters = this.aSqlParameters });
+            return res;
         }
 
         private void PopulateParameters()
@@ -623,5 +642,10 @@ namespace ASql
                     throw new NotSupportedException();
             }
         }
+
+        public event EventHandler<ExecuteNonQueryEndEventArgs> OnExecuteNonQueryEnd;
+        public event EventHandler<ExecuteReaderEndEventArgs> OnExecuteReaderEnd;
+        public event EventHandler<ExecuteScalarEndEventArgs> OnExecuteScalarEnd;
+        public event EventHandler<GenericQueryEndEventArgs> OnGenericQueryEnd;
     }
 }

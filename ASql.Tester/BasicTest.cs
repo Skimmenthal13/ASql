@@ -1,3 +1,4 @@
+using ASql.Events;
 using Google.Protobuf.WellKnownTypes;
 using Oracle.ManagedDataAccess.Client;
 using System.Collections.Generic;
@@ -48,10 +49,7 @@ namespace ASql.Tester
             }
         }
 
-        private void Cmd_OnExecuteNonQueryEnd(object sender, events.ExecuteNonQueryEndEventArgs e)
-        {
-            Console.WriteLine(e.Query + e.TotalMilliseconds);
-        }
+        
 
         public string CreateSequnce(string tableName)
         {
@@ -167,10 +165,10 @@ namespace ASql.Tester
                 else { Assert.AreEqual(-1, i); }
             }
         }
-        //[DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"DROP TABLE {tableName}")]
-        //[DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"DROP TABLE {tableName}")]
-        //[DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"DROP TABLE {tableName}")]
-        //[DataRow(ASqlManager.DBType.PostgreSQL, posConnectionString, $"DROP TABLE {tableName}")]
+        [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"DROP TABLE {tableName}")]
+        [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"DROP TABLE {tableName}")]
+        [DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"DROP TABLE {tableName}")]
+        [DataRow(ASqlManager.DBType.PostgreSQL, posConnectionString, $"DROP TABLE {tableName}")]
         [DataRow(ASqlManager.DBType.Sqlite, litConnectionString, $"DROP TABLE {tableName}")]
         [TestMethod]
         public void DropTableWithRollBack(ASqlManager.DBType dBType, string ConnectionString, string sql)
@@ -183,7 +181,6 @@ namespace ASql.Tester
                 conn.Open();
                 DbTransaction trans = conn.BeginTransaction();
                 ASqlCommand cmd = new ASqlCommand(sql, conn);
-                cmd.OnExecuteNonQueryEnd += Cmd_OnExecuteNonQueryEnd;
                 cmd.Transaction = trans;
                 i = cmd.ExecuteNonQuery();
                 trans.Rollback();
@@ -258,6 +255,7 @@ namespace ASql.Tester
                 conn.Open();
                 DbTransaction trans = conn.BeginTransaction();
                 ASqlCommand cmd = new ASqlCommand(sql, conn);
+                cmd.OnExecuteNonQueryEnd += Utils.Cmd_OnExecuteNonQueryEnd;
                 cmd.Transaction = trans;
 
                 string paramChar = "";
@@ -289,6 +287,7 @@ namespace ASql.Tester
                 string name = "";
                 conn.Open();
                 ASqlCommand cmd = new ASqlCommand(sql, conn);
+                cmd.OnExecuteScalarEnd += Utils.Cmd_OnExecuteScalarEnd;
                 ASqlParameter par = new ASqlParameter();
                 par.ParameterName = "lastname";
                 par.DbType = DbType.String;
@@ -299,6 +298,7 @@ namespace ASql.Tester
                 Assert.AreEqual("first1", name);
             }
         }
+
         [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"select firstname from {tableName} where lastname = @lastname")]
         [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"select firstname from {tableName} where lastname = :lastname")]
         [DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"select firstname from {tableName} where lastname = ?")]
@@ -314,6 +314,8 @@ namespace ASql.Tester
                 string i = "";
                 conn.Open();
                 ASqlCommand cmd = new ASqlCommand(sql, conn);
+                cmd.OnExecuteReaderEnd += Utils.Cmd_OnExecuteReaderEnd;
+                cmd.OnGenericQueryEnd += Utils.Cmd_OnGenericQueryEnd;
                 ASqlParameter par = new ASqlParameter();
                 par.ParameterName = "lastname";
                 par.DbType = DbType.String;
@@ -347,10 +349,13 @@ namespace ASql.Tester
                 conn.Open();
                 ASqlCommand cmd = new ASqlCommand(sql, conn);
                 ASqlDataAdapter aSqlDataAdapter = new ASqlDataAdapter(cmd);
+                aSqlDataAdapter.OnDataAdapterFillEnd += Utils.ASqlDataAdapter_OnDataAdapterFillEnd;
                 DataSet ds = new DataSet();
                 i = aSqlDataAdapter.Fill(ds);
                 Assert.AreEqual (1, i);
             }
         }
+
+        
     }
 }

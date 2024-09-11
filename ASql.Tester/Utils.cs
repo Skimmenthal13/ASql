@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ASql.Events;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -9,6 +10,26 @@ namespace ASql.Tester
 {
     class Utils
     {
+        internal static void Cmd_OnExecuteNonQueryEnd(object sender, ExecuteNonQueryEndEventArgs e)
+        {
+            Console.WriteLine(e.Query + e.TotalMilliseconds);
+        }
+        internal static void Cmd_OnExecuteScalarEnd(object sender, ExecuteScalarEndEventArgs e)
+        {
+            Console.WriteLine(e.Query + e.TotalMilliseconds);
+        }
+        internal static void Cmd_OnExecuteReaderEnd(object sender, ExecuteReaderEndEventArgs e)
+        {
+            Console.WriteLine(e.Query + e.TotalMilliseconds);
+        }
+        internal static void ASqlDataAdapter_OnDataAdapterFillEnd(object sender, DataAdapterFillEndEventArgs e)
+        {
+            Console.WriteLine(e.Query + e.TotalMilliseconds);
+        }
+        internal static void Cmd_OnGenericQueryEnd(object sender, GenericQueryEndEventArgs e)
+        {
+            Console.WriteLine(e.Query + e.TotalMilliseconds);
+        }
         static internal List<ASqlParameter> GetParametersFromkeyValuePairs(Dictionary<string, object> keyValuePairs, string paramChar)
         {
             string vals = "";
