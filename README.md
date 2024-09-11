@@ -4,7 +4,7 @@ C# Library that let use multiple types of databases ASql C# Library that let use
 
 The supported databases are SqlServer, Oracle, MySql, PostgreSQL and Sqlite
 
-[Here you can find last stable from Nuget](www.nuget.org/packages/ASql)
+Here you can find last stable from Nuget www.nuget.org/packages/ASql
 
 You only have to declare wich type of database would like you use and use the classe in the same way of sql or oracle client.
 
