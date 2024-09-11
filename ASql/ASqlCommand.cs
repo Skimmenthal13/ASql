@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using ASql.events;
+using Microsoft.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using Npgsql;
 using Oracle.ManagedDataAccess.Client;
@@ -15,6 +16,7 @@ namespace ASql
 {
     public class ASqlCommand : DbCommand
     {
+        public event EventHandler<ExecuteNonQueryEndEventArgs> OnExecuteNonQueryEnd;
         internal SqlCommand _sqlCmd;
         internal OracleCommand _oraCmd;
         internal MySqlCommand _mysCmd;
@@ -427,21 +429,38 @@ namespace ASql
         public override int ExecuteNonQuery()
         {
             PopulateParameters();
+            string query = "";
+            DateTime startTime = DateTime.Now;
+            int res = 0;
             switch (ASqlManager.DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
-                    return _sqlCmd.ExecuteNonQuery();
+                    query = _sqlCmd.CommandText;
+                    res = _sqlCmd.ExecuteNonQuery();
+                    break;
                 case ASqlManager.DBType.Oracle:
-                    return _oraCmd.ExecuteNonQuery();
+                    query = _oraCmd.CommandText;
+                    res = _oraCmd.ExecuteNonQuery();
+                    break;
                 case ASqlManager.DBType.MySql:
-                    return _mysCmd.ExecuteNonQuery();
+                    query = _mysCmd.CommandText;
+                    res = _mysCmd.ExecuteNonQuery();
+                    break;
                 case ASqlManager.DBType.PostgreSQL:
-                    return _posCmd.ExecuteNonQuery();
+                    query = _posCmd.CommandText;
+                    res = _posCmd.ExecuteNonQuery();
+                    break;
                 case ASqlManager.DBType.Sqlite:
-                    return _litCmd.ExecuteNonQuery();
+                    query = _litCmd.CommandText;
+                    res = _litCmd.ExecuteNonQuery();
+                    break;
                 default:
                     throw new NotSupportedException();
             }
+            double totalMs = (DateTime.Now - startTime).TotalMilliseconds;
+            OnExecuteNonQueryEnd?.Invoke(this, new ExecuteNonQueryEndEventArgs { Query = query, TotalMilliseconds = totalMs });
+            return res;
+            
         }
         public override object ExecuteScalar()
         {

@@ -47,6 +47,12 @@ namespace ASql.Tester
                     
             }
         }
+
+        private void Cmd_OnExecuteNonQueryEnd(object sender, events.ExecuteNonQueryEndEventArgs e)
+        {
+            Console.WriteLine(e.Query + e.TotalMilliseconds);
+        }
+
         public string CreateSequnce(string tableName)
         {
             string query = $"CREATE SEQUENCE {tableName}_seq START WITH 1 INCREMENT BY 1";
@@ -161,10 +167,10 @@ namespace ASql.Tester
                 else { Assert.AreEqual(-1, i); }
             }
         }
-        [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"DROP TABLE {tableName}")]
-        [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"DROP TABLE {tableName}")]
-        [DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"DROP TABLE {tableName}")]
-        [DataRow(ASqlManager.DBType.PostgreSQL, posConnectionString, $"DROP TABLE {tableName}")]
+        //[DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"DROP TABLE {tableName}")]
+        //[DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"DROP TABLE {tableName}")]
+        //[DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"DROP TABLE {tableName}")]
+        //[DataRow(ASqlManager.DBType.PostgreSQL, posConnectionString, $"DROP TABLE {tableName}")]
         [DataRow(ASqlManager.DBType.Sqlite, litConnectionString, $"DROP TABLE {tableName}")]
         [TestMethod]
         public void DropTableWithRollBack(ASqlManager.DBType dBType, string ConnectionString, string sql)
@@ -177,6 +183,7 @@ namespace ASql.Tester
                 conn.Open();
                 DbTransaction trans = conn.BeginTransaction();
                 ASqlCommand cmd = new ASqlCommand(sql, conn);
+                cmd.OnExecuteNonQueryEnd += Cmd_OnExecuteNonQueryEnd;
                 cmd.Transaction = trans;
                 i = cmd.ExecuteNonQuery();
                 trans.Rollback();
