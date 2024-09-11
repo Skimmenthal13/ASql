@@ -1,10 +1,21 @@
 # ASql
 
-C# Library that let use multiple types of databases with same code
+C# Library that let use multiple types of databases ASql C# Library that let use multiple types of databases (SqlServer, Oracle, MySql, PostgreSQL, Sqlite) with same code with same code
 
 The supported databases are SqlServer and Oracle
 
 You only have to declare wich type of database would like you use and use the classe in the same way of sql or oracle client.
+
+Inside our library We use the most famous libraries for connecting to these 5 dabases :
+
+Database        Library                     Example of connection string
+
+SqlServer       System.Data.SqlClient       const string sqlConnectionString = "Data Source=NBK-437;Persist Security Info=True;Initial Catalog=test;Integrated Security=SSPI;";
+Oracle          Oracle.ManagedDataAccess    const string oraConnectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XEPDB1)));User Id=DBWUSR;Password=DBWUSR;";
+MySql           MySql.Data                  const string mysConnectionString = "Server=localhost;Database=test;Uid=sa;Pwd=ASqlAdmin01;";
+PostgreSQL      Npgsql                      const string posConnectionString = "Server=127.0.0.1;Port=5432;Database=test;User Id=postgres;Password=ASqlAdmin01;";
+Sqlite          Microsoft.Data.Sqlite       const string litConnectionString = @"Data Source=c:\temp\test.db;";
+
 
 Here you can find examples : 
 
