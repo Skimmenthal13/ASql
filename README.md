@@ -18,6 +18,7 @@ Inside our library We use the most famous libraries for connecting to these 5 da
 | PostgreSQL | Npgsql                     | const string posConnectionString = "Server=127.0.0.1;Port=5432;Database=test;User Id=postgres;Password=ASqlAdmin01;";                                                                   |
 | Sqlite     | Microsoft.Data.Sqlite      | const string litConnectionString = @"Data Source=c:\temp\test.db;";                                                                                                                     |
 
+We have added the event OnGenericQueryEnd to trace all the query and their performances executed in your software.
 
 Here you can find examples : 
 
@@ -126,4 +127,30 @@ Here you can find examples :
                     i = cmd.ExecuteNonQuery();
                     trans.Rollback();
                 }
+            }
+
+            # Example 5 using Event to trace queries
+
+            //This method will be called whene ExecuteNonQuery, ExecuteReader and ExcutedScalar will be executed
+            //If you want you can use your favourite logging library to trace the queries and their performance in millisecs.
+            internal static void Cmd_OnGenericQueryEnd(object sender, GenericQueryEndEventArgs e)
+            {
+                Console.WriteLine(e.Method+" "+e.Query +" "+ e.TotalMilliseconds);
+            }
+            
+            ASqlManager.DataBaseType = dBType;
+            using (ASqlConnection conn = new ASqlConnection(ConnectionString))
+            {
+                conn.Open();
+                ASqlCommand cmd = new ASqlCommand(sql, conn);
+                cmd.OnGenericQueryEnd += Cmd_OnGenericQueryEnd; //This is the way to link the method to the event inside the command object
+                string paramChar = "";
+
+                List<ASqlParameter> apc = Utils.GetParametersFromkeyValuePairs(d, paramChar);
+                foreach (ASqlParameter param in apc)
+                {
+                    cmd.aSqlParameters.Add(param);
+                }
+
+                r = cmd.ExecuteNonQuery();
             }
