@@ -1,4 +1,5 @@
 ﻿using ASql.Events;
+using ASql.Utils;
 using Microsoft.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using Npgsql;
@@ -9,6 +10,7 @@ using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -452,8 +454,7 @@ namespace ASql
                     throw new NotSupportedException();
             }
             double totalMs = (DateTime.Now - startTime).TotalMilliseconds;
-            OnExecuteNonQueryEnd?.Invoke(this, new ExecuteNonQueryEndEventArgs { Query = query, TotalMilliseconds = totalMs, aSqlParameters = this.aSqlParameters });
-            OnGenericQueryEnd?.Invoke(this, new GenericQueryEndEventArgs { Query = query, TotalMilliseconds = totalMs, aSqlParameters = this.aSqlParameters });
+            OnGenericQueryEnd?.Invoke(this, new GenericQueryEndEventArgs { Method = ReflectionHelper.GetMethodFullName(MethodBase.GetCurrentMethod()), Query = query, TotalMilliseconds = totalMs, aSqlParameters = this.aSqlParameters });
             return res;
             
         }
@@ -484,8 +485,7 @@ namespace ASql
                     throw new NotSupportedException();
             }
             double totalMs = (DateTime.Now - startTime).TotalMilliseconds;
-            OnExecuteScalarEnd?.Invoke(this, new ExecuteScalarEndEventArgs { Query = query, TotalMilliseconds = totalMs, aSqlParameters = this.aSqlParameters });
-            OnGenericQueryEnd?.Invoke(this, new GenericQueryEndEventArgs { Query = query, TotalMilliseconds = totalMs, aSqlParameters = this.aSqlParameters });
+            OnGenericQueryEnd?.Invoke(this, new GenericQueryEndEventArgs { Method = ReflectionHelper.GetMethodFullName(MethodBase.GetCurrentMethod()), Query = query, TotalMilliseconds = totalMs, aSqlParameters = this.aSqlParameters });
             return res;
         }
 
@@ -559,8 +559,7 @@ namespace ASql
                     throw new NotSupportedException();
             }
             double totalMs = (DateTime.Now - startTime).TotalMilliseconds;
-            OnExecuteReaderEnd?.Invoke(this, new ExecuteReaderEndEventArgs { Query = query, TotalMilliseconds = totalMs, aSqlParameters = this.aSqlParameters });
-            OnGenericQueryEnd?.Invoke(this, new GenericQueryEndEventArgs { Query = query, TotalMilliseconds = totalMs, aSqlParameters = this.aSqlParameters });
+            OnGenericQueryEnd?.Invoke(this, new GenericQueryEndEventArgs { Method = ReflectionHelper.GetMethodFullName(MethodBase.GetCurrentMethod()), Query = query, TotalMilliseconds = totalMs, aSqlParameters = this.aSqlParameters });
             return res;
         }
 
@@ -642,10 +641,6 @@ namespace ASql
                     throw new NotSupportedException();
             }
         }
-
-        public event EventHandler<ExecuteNonQueryEndEventArgs> OnExecuteNonQueryEnd;
-        public event EventHandler<ExecuteReaderEndEventArgs> OnExecuteReaderEnd;
-        public event EventHandler<ExecuteScalarEndEventArgs> OnExecuteScalarEnd;
         public event EventHandler<GenericQueryEndEventArgs> OnGenericQueryEnd;
     }
 }

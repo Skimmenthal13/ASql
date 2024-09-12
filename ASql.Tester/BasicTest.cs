@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.Data.SqlTypes;
+
+
 using static Mysqlx.Expect.Open.Types.Condition.Types;
 
 namespace ASql.Tester
@@ -12,350 +15,145 @@ namespace ASql.Tester
     [TestClass]
     public class BasicTest
     {
-        const string oraConnectionString = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=tcp)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XEPDB1)));User Id=DBWUSR;Password=DBWUSR;";
-        const string sqlConnectionString = "Data Source=NBK-437;Persist Security Info=True;Initial Catalog=test;Integrated Security=SSPI;";
-        const string mysConnectionString = "Server=localhost;Database=test;Uid=sa;Pwd=ASqlAdmin01;";
-        const string posConnectionString = "Server=127.0.0.1;Port=5432;Database=test;User Id=postgres;Password=ASqlAdmin01;";
-        const string litConnectionString = @"Data Source=c:\temp\test.db;";
-        const string tableName = "PERSON";
-        const string lowerTableName = "person";
-        static byte[] _FileBytes = File.ReadAllBytes("./headshot.png");
+      
 
-        [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"CREATE TABLE {tableName} ([id] [int] IDENTITY(1,1) NOT NULL , [firstname] [nvarchar](30) NOT NULL , [lastname] [nvarchar](30) NOT NULL , [age] [int] NULL , [value] [bigint] NULL , [birthday] [datetime2] NULL , [hourly] [decimal](18,2) NULL , [localtime] [datetimeoffset] NULL , [picture] [varbinary](max) NULL , [guid] [varchar](36) NULL , [active] [tinyint] NULL , CONSTRAINT [PK_person] PRIMARY KEY CLUSTERED (  [id] ASC ) WITH (  PAD_INDEX = OFF,   STATISTICS_NORECOMPUTE = OFF,   IGNORE_DUP_KEY = OFF,   ALLOW_ROW_LOCKS = ON,   ALLOW_PAGE_LOCKS = ON ) ON [PRIMARY] ) ON [PRIMARY] ")]
-        [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"CREATE TABLE {tableName} (id number(11) NOT NULL , firstname varchar2(30 char) NOT NULL , lastname varchar2(30 char) NOT NULL , age number(11) NULL , value number(12) NULL , birthday timestamp NULL , hourly decimal(18,2) NULL , localtime timestamp NULL , picture blob  NULL , guid varchar2(36) NULL , active number(37) NULL ,PRIMARY KEY (id))")]
-        [DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"CREATE TABLE `{tableName}` (`id` int(11) NOT NULL AUTO_INCREMENT , `firstname` varchar(30) NOT NULL , `lastname` varchar(30) NOT NULL , `age` int(11) NULL , `value` int(12) NULL , `birthday` datetime NULL , `hourly` decimal(18,2) NULL , `picture` longblob NULL , `guid` varchar(36) NULL , `active` tinyint NULL ,PRIMARY KEY (`id`)) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4")]
-        [DataRow(ASqlManager.DBType.PostgreSQL, posConnectionString, $"CREATE TABLE {tableName} (\"id\" SERIAL PRIMARY KEY , \"firstname\" character varying(30) NOT NULL , \"lastname\" character varying(30) NOT NULL , \"age\" integer NULL , \"value\" bigint NULL , \"birthday\" timestamp without time zone NULL , \"hourly\" numeric(18,2) NULL , \"picture\" bytea NULL , \"guid\" character varying(36) NULL , \"active\" smallint NULL ) WITH (  OIDS = FALSE)")]
-        [DataRow(ASqlManager.DBType.Sqlite, litConnectionString, $"CREATE TABLE IF NOT EXISTS `{tableName}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL , `firstName` VARCHAR(30) COLLATE NOCASE NOT NULL , `lastName` VARCHAR(30) COLLATE NOCASE NOT NULL , `age` INTEGER , `value` BIGINT , `birthday` TEXT , `hourly` DECIMAL(18,2) , `picture` BLOB , `guid` VARCHAR(36) , `active` TINYINT )")]
-
+        [DataRow(ASqlManager.DBType.SqlServer, Utils.sqlConnectionString)]
+        [DataRow(ASqlManager.DBType.Oracle, Utils.oraConnectionString)]
+        [DataRow(ASqlManager.DBType.MySql, Utils.mysConnectionString)]
+        [DataRow(ASqlManager.DBType.PostgreSQL, Utils.posConnectionString)]
+        [DataRow(ASqlManager.DBType.Sqlite, Utils.litConnectionString)]
         [TestMethod]
-        public void CreateTableTest(ASqlManager.DBType dBType, string ConnectionString, string sql)
+        public void CreateTableTest(ASqlManager.DBType dBType, string ConnectionString)
         {
-            ASqlManager.DataBaseType = dBType;
+            int i = Utils.CreateTable(dBType, ConnectionString);
+            if (ASqlManager.DataBaseType == ASqlManager.DBType.MySql || ASqlManager.DataBaseType == ASqlManager.DBType.Sqlite) { Assert.AreEqual(0, i); }
+            else { Assert.AreEqual(-1, i); }
 
-            using (ASqlConnection conn = new ASqlConnection(ConnectionString))
-            {
-                int i = 0;
-                conn.Open();
-                ASqlCommand cmd = new ASqlCommand(sql, conn);
-                i = cmd.ExecuteNonQuery();
-                if (dBType == ASqlManager.DBType.Oracle) 
-                {
-                    ExecuteQuery(ASqlManager.DBType.Oracle, oraConnectionString, CreateSequnce(tableName));
-                    ExecuteQuery(ASqlManager.DBType.Oracle, oraConnectionString, CreateTrigger(tableName));
-                }
-                if (ASqlManager.DataBaseType == ASqlManager.DBType.MySql || ASqlManager.DataBaseType == ASqlManager.DBType.Sqlite) { Assert.AreEqual(0, i); }
-                else { Assert.AreEqual(-1, i); }
-                    
-            }
         }
-
+        
         
 
-        public string CreateSequnce(string tableName)
-        {
-            string query = $"CREATE SEQUENCE {tableName}_seq START WITH 1 INCREMENT BY 1";
-            return query;
-        }
-        public string CreateTrigger(string tableName)
-        {
-            string query = $"CREATE OR REPLACE TRIGGER {tableName}_seq_tr " +
-                           "BEFORE INSERT ON person FOR EACH ROW " +
-                           "WHEN (NEW.id IS NULL) " +
-                           "BEGIN " +
-                           "SELECT person_seq.NEXTVAL INTO :NEW.id FROM DUAL; " +
-                           "END; ";
-            return query;
-        }
-        public string DropSequenceQuery(string tableName)
-        {
-            //string query = "DECLARE cnt NUMBER;\r\n  BEGIN\r\n    SELECT COUNT(*) INTO cnt FROM user_tables WHERE table_name = '" + SanitizeString(tableName) + "';\r\n    IF cnt <> 0 THEN\r\n      EXECUTE IMMEDIATE 'DROP TABLE " + SanitizeString(tableName) + "';\r\n    END IF;\r\n  END;";
-            string query = "DROP SEQUENCE " + tableName.ToUpper() + "_SEQ" + "";
-            return query;
-        }
-        public void ExecuteQuery(ASqlManager.DBType dBType, string ConnectionString, string sql)
-        {
-            ASqlManager.DataBaseType = dBType;
-
-            using (ASqlConnection conn = new ASqlConnection(ConnectionString))
-            {
-                int i = 0;
-                conn.Open();
-                ASqlCommand cmd = new ASqlCommand(sql, conn);
-                i = cmd.ExecuteNonQuery();
-                Assert.AreEqual(-1, i);
-            }
-        }
-
-        [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"select case when exists((select * from information_schema.tables where table_name = '{tableName}')) then 1 else 0 end")]
-        [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"SELECT table_name FROM USER_TABLES WHERE table_name='{tableName}'")]
-        [DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"SELECT count(*) as ntab FROM information_schema.TABLES WHERE (TABLE_SCHEMA = 'test') AND (TABLE_NAME = '{tableName}')")]
-        [DataRow(ASqlManager.DBType.PostgreSQL, posConnectionString, $"SELECT table_name FROM information_schema.tables WHERE table_schema='public' and table_name='{lowerTableName}'")]
-        [DataRow(ASqlManager.DBType.Sqlite, litConnectionString, $"SELECT name FROM sqlite_master WHERE type='table' AND name='{tableName}'")]
+        [DataRow(ASqlManager.DBType.SqlServer, Utils.sqlConnectionString)]
+        [DataRow(ASqlManager.DBType.Oracle, Utils.oraConnectionString)]
+        [DataRow(ASqlManager.DBType.MySql, Utils.mysConnectionString)]
+        [DataRow(ASqlManager.DBType.PostgreSQL, Utils.posConnectionString)]
+        [DataRow(ASqlManager.DBType.Sqlite, Utils.litConnectionString)]
         [TestMethod]
-        public void CheckTable(ASqlManager.DBType dBType,string ConnectionString, string sql)
+        public void CheckTableTest(ASqlManager.DBType dBType, string ConnectionString, string sql)
         {
-            ASqlManager.DataBaseType = dBType;
-
-            using (ASqlConnection conn = new ASqlConnection(ConnectionString))
-            {
-                string i = "";
-                conn.Open();
-                ASqlCommand cmd = new ASqlCommand(sql, conn);
-                switch (ASqlManager.DataBaseType) 
-                {
-                    case ASqlManager.DBType.Oracle:
-                    case ASqlManager.DBType.PostgreSQL:
-                        using (DbDataReader read = cmd.ExecuteReader())
-                        {
-                            while (read.Read())
-                            {
-                                i = read.GetString(read.GetOrdinal("table_name"));
-                            }
-                        }
-                        break;
-                    case ASqlManager.DBType.SqlServer:
-                        bool exists = (int)cmd.ExecuteScalar() == 1;
-                        if (exists) { i = tableName; }
-                        break;
-                    case ASqlManager.DBType.MySql:
-                        using (DbDataReader read = cmd.ExecuteReader())
-                        {
-                            while (read.Read())
-                            {
-                                i = read.GetInt32(read.GetOrdinal("ntab")).ToString();
-                                if (i == "1") i = "PERSON";
-                            }
-                        }
-                        break;
-                    case ASqlManager.DBType.Sqlite:
-                        using (DbDataReader read = cmd.ExecuteReader())
-                        {
-                            while (read.Read())
-                            {
-                                i = read.GetString(read.GetOrdinal("name"));
-                            }
-                        }
-                        break;
-                }
-                
-                Assert.AreEqual("PERSON", i.ToUpper());
-            }
+            string i = Utils.CheckTable(dBType, ConnectionString, sql);
+            Assert.AreEqual("PERSON", i.ToUpper());
         }
-        [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"DROP TABLE {tableName}")]
-        [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"DROP TABLE {tableName}")]
-        [DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"DROP TABLE {tableName}")]
-        [DataRow(ASqlManager.DBType.PostgreSQL, posConnectionString, $"DROP TABLE {tableName}")]
-        [DataRow(ASqlManager.DBType.Sqlite, litConnectionString, $"DROP TABLE {tableName}")]
-        [TestMethod]
-        public void DropTable(ASqlManager.DBType dBType, string ConnectionString, string sql) 
-        {
-            ASqlManager.DataBaseType = dBType;
-
-            using (ASqlConnection conn = new ASqlConnection(ConnectionString))
-            {
-                int i = 0;
-                conn.Open();
-                ASqlCommand cmd = new ASqlCommand(sql, conn);
-                i = cmd.ExecuteNonQuery();
-                if (dBType == ASqlManager.DBType.Oracle)
-                {
-                    ExecuteQuery(ASqlManager.DBType.Oracle, oraConnectionString, DropSequenceQuery(tableName));
-                }
-                if (ASqlManager.DataBaseType == ASqlManager.DBType.MySql || ASqlManager.DataBaseType == ASqlManager.DBType.Sqlite) { Assert.AreEqual(0, i); }
-                else { Assert.AreEqual(-1, i); }
-            }
-        }
-        [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"DROP TABLE {tableName}")]
-        [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"DROP TABLE {tableName}")]
-        [DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"DROP TABLE {tableName}")]
-        [DataRow(ASqlManager.DBType.PostgreSQL, posConnectionString, $"DROP TABLE {tableName}")]
-        [DataRow(ASqlManager.DBType.Sqlite, litConnectionString, $"DROP TABLE {tableName}")]
-        [TestMethod]
-        public void DropTableWithRollBack(ASqlManager.DBType dBType, string ConnectionString, string sql)
-        {
-            ASqlManager.DataBaseType = dBType;
-
-            using (ASqlConnection conn = new ASqlConnection(ConnectionString))
-            {
-                int i = 0;
-                conn.Open();
-                DbTransaction trans = conn.BeginTransaction();
-                ASqlCommand cmd = new ASqlCommand(sql, conn);
-                cmd.Transaction = trans;
-                i = cmd.ExecuteNonQuery();
-                trans.Rollback();
-                if (ASqlManager.DataBaseType == ASqlManager.DBType.MySql || ASqlManager.DataBaseType == ASqlManager.DBType.Sqlite) { Assert.AreEqual(0, i); }
-                else { Assert.AreEqual(-1, i); }
-            }
-        }
-        [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,picture,guid,active) VALUES (@firstname,@lastname,@age,@value,@birthday,@hourly,@picture,@guid,@active)")]
-        [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,picture,guid,active) VALUES (:firstname,:lastname,:age,:value,:birthday,:hourly,:picture,:guid,:active)")]
-        [DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,picture,guid,active) VALUES (?,?,?,?,?,?,?,?,?)")]
-        [DataRow(ASqlManager.DBType.PostgreSQL, posConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,picture,guid,active) VALUES (@firstname,@lastname,@age,@value,@birthday,@hourly,@picture,@guid,@active)")]
-        [DataRow(ASqlManager.DBType.Sqlite, litConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,picture,guid,active) VALUES (@firstname,@lastname,@age,@value,@birthday,@hourly,@picture,@guid,@active)")]
-        [TestMethod]
-        public void InsertRow(ASqlManager.DBType dBType, string ConnectionString, string sql)
-        {
-            Dictionary<string, object> d = new Dictionary<string, object>();
-            for (int i = 1; i < 2; i++)
-            {
-                d.Add("firstname", "first" + i);
-                d.Add("lastname", "last" + i);
-                d.Add("age", i);
-                d.Add("value", i * 1000);
-                d.Add("birthday", DateTime.Now);
-                d.Add("hourly", 123.456);
-                d.Add("picture", _FileBytes);
-                d.Add("guid", Guid.NewGuid());
-                d.Add("active", (i % 2 > 0));
-            }
-            ASqlManager.DataBaseType = dBType;
-            using (ASqlConnection conn = new ASqlConnection(ConnectionString))
-            {
-                int i = 0;
-                conn.Open();
-                ASqlCommand cmd = new ASqlCommand(sql, conn);
-                string paramChar = "";
-
-                List<ASqlParameter> apc = Utils.GetParametersFromkeyValuePairs(d, paramChar);
-                foreach (ASqlParameter param in apc)
-                {
-                    cmd.aSqlParameters.Add(param);
-                }
-
-                i = cmd.ExecuteNonQuery();
-                Assert.AreEqual(1, i);
-            }
-        }
-        [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,picture,guid,active) VALUES (@firstname,@lastname,@age,@value,@birthday,@hourly,@picture,@guid,@active)")]
-        [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,picture,guid,active) VALUES (:firstname,:lastname,:age,:value,:birthday,:hourly,:picture,:guid,:active)")]
-        [DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,picture,guid,active) VALUES (?,?,?,?,?,?,?,?,?)")] //no
-        [DataRow(ASqlManager.DBType.PostgreSQL, posConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,picture,guid,active) VALUES (@firstname,@lastname,@age,@value,@birthday,@hourly,@picture,@guid,@active)")]
-        [DataRow(ASqlManager.DBType.Sqlite, litConnectionString, $"INSERT INTO {tableName} (firstname,lastname,age,value,birthday,hourly,picture,guid,active) VALUES (@firstname,@lastname,@age,@value,@birthday,@hourly,@picture,@guid,@active)")]
-        [TestMethod]
-        public void InsertRowTransaction(ASqlManager.DBType dBType, string ConnectionString, string sql)
-        {
-            Dictionary<string, object> d = new Dictionary<string, object>();
-            for (int i = 1; i < 2; i++)
-            {
-                d.Add("firstname", "first" + i);
-                d.Add("lastname", "last" + i);
-                d.Add("age", i);
-                d.Add("value", i * 1000);
-                d.Add("birthday", DateTime.Now);
-                d.Add("hourly", 123.456);
-                d.Add("picture", _FileBytes);
-                d.Add("guid", Guid.NewGuid());
-                d.Add("active", (i % 2 > 0));
-            }
-            ASqlManager.DataBaseType = dBType;
-            using (ASqlConnection conn = new ASqlConnection(ConnectionString))
-            {
-                int i = 0;
-                conn.Open();
-                DbTransaction trans = conn.BeginTransaction();
-                ASqlCommand cmd = new ASqlCommand(sql, conn);
-                cmd.OnExecuteNonQueryEnd += Utils.Cmd_OnExecuteNonQueryEnd;
-                cmd.Transaction = trans;
-
-                string paramChar = "";
-
-                List<ASqlParameter> apc = Utils.GetParametersFromkeyValuePairs(d, paramChar);
-                foreach (ASqlParameter param in apc)
-                {
-                    cmd.aSqlParameters.Add(param);
-                }
-
-                i = cmd.ExecuteNonQuery();
-                trans.Rollback();
-                Assert.AreEqual(1, i);
-            }
-        }
-
-        [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"select firstname from {tableName} where lastname = @lastname")]
-        [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"select firstname from {tableName} where lastname = :lastname")]
-        [DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"select firstname from {tableName} where lastname = ?")]
-        [DataRow(ASqlManager.DBType.PostgreSQL, posConnectionString, $"select firstname from {tableName} where lastname = :lastname")]
-        [DataRow(ASqlManager.DBType.Sqlite, litConnectionString, $"select firstname from {tableName} where lastname = @lastname")]
-        [TestMethod]
-        public void ExecuteScalar(ASqlManager.DBType dBType, string ConnectionString, string sql)
-        {
-            ASqlManager.DataBaseType = dBType;
-
-            using (ASqlConnection conn = new ASqlConnection(ConnectionString))
-            {
-                string name = "";
-                conn.Open();
-                ASqlCommand cmd = new ASqlCommand(sql, conn);
-                cmd.OnExecuteScalarEnd += Utils.Cmd_OnExecuteScalarEnd;
-                ASqlParameter par = new ASqlParameter();
-                par.ParameterName = "lastname";
-                par.DbType = DbType.String;
-                par.Value = "last1";
-                cmd.aSqlParameters.Add(par);
-                name = (string)cmd.ExecuteScalar();
-                
-                Assert.AreEqual("first1", name);
-            }
-        }
-
-        [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"select firstname from {tableName} where lastname = @lastname")]
-        [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"select firstname from {tableName} where lastname = :lastname")]
-        [DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"select firstname from {tableName} where lastname = ?")]
-        [DataRow(ASqlManager.DBType.PostgreSQL, posConnectionString, $"select firstname from {tableName} where lastname = :lastname")]
-        [DataRow(ASqlManager.DBType.Sqlite, litConnectionString, $"select firstname from {tableName} where lastname = @lastname")]
-        [TestMethod]
-        public void ExecuteReaderTester(ASqlManager.DBType dBType, string ConnectionString, string sql)
-        {
-            ASqlManager.DataBaseType = dBType;
-
-            using (ASqlConnection conn = new ASqlConnection(ConnectionString))
-            {
-                string i = "";
-                conn.Open();
-                ASqlCommand cmd = new ASqlCommand(sql, conn);
-                cmd.OnExecuteReaderEnd += Utils.Cmd_OnExecuteReaderEnd;
-                cmd.OnGenericQueryEnd += Utils.Cmd_OnGenericQueryEnd;
-                ASqlParameter par = new ASqlParameter();
-                par.ParameterName = "lastname";
-                par.DbType = DbType.String;
-                par.Value = "last1";
-                cmd.aSqlParameters.Add(par);
-                using (DbDataReader read = cmd.ExecuteReader())
-                {
-                    while (read.Read())
-                    {
-                        i = read.GetString(read.GetOrdinal("firstname"));
-                    }
-                }
-
-                Assert.AreEqual("FIRST1", i.ToUpper());
-            }
-        }
-
-        [DataRow(ASqlManager.DBType.SqlServer, sqlConnectionString, $"select * from {tableName}")]
-        [DataRow(ASqlManager.DBType.Oracle, oraConnectionString, $"select * from {tableName}")]
-        [DataRow(ASqlManager.DBType.MySql, mysConnectionString, $"select * from {tableName}")]
-        [DataRow(ASqlManager.DBType.PostgreSQL, posConnectionString, $"select * from {tableName}")]
-        [DataRow(ASqlManager.DBType.Sqlite, litConnectionString, $"select * from {tableName}")]
-        [TestMethod]
-        public void SqlDataAdapterTester(ASqlManager.DBType dBType, string ConnectionString, string sql)
-        {
-            ASqlManager.DataBaseType = dBType;
-
-            using (ASqlConnection conn = new ASqlConnection(ConnectionString))
-            {
-                int i = 0;
-                conn.Open();
-                ASqlCommand cmd = new ASqlCommand(sql, conn);
-                ASqlDataAdapter aSqlDataAdapter = new ASqlDataAdapter(cmd);
-                aSqlDataAdapter.OnDataAdapterFillEnd += Utils.ASqlDataAdapter_OnDataAdapterFillEnd;
-                DataSet ds = new DataSet();
-                i = aSqlDataAdapter.Fill(ds);
-                Assert.AreEqual (1, i);
-            }
-        }
-
         
+        [DataRow(ASqlManager.DBType.SqlServer, Utils.sqlConnectionString)]
+        [DataRow(ASqlManager.DBType.Oracle, Utils.oraConnectionString)]
+        [DataRow(ASqlManager.DBType.MySql, Utils.mysConnectionString)]
+        [DataRow(ASqlManager.DBType.PostgreSQL, Utils.posConnectionString)]
+        [DataRow(ASqlManager.DBType.Sqlite, Utils.litConnectionString)]
+        [TestMethod]
+        public void DropTableTest(ASqlManager.DBType dBType, string ConnectionString)
+        {
+            int i = Utils.DropTable(dBType, ConnectionString);
+            if (ASqlManager.DataBaseType == ASqlManager.DBType.MySql || ASqlManager.DataBaseType == ASqlManager.DBType.Sqlite) { Assert.AreEqual(0, i); }
+            else { Assert.AreEqual(-1, i); }
+        }
+        
+        [DataRow(ASqlManager.DBType.SqlServer, Utils.sqlConnectionString)]
+        [DataRow(ASqlManager.DBType.Oracle, Utils.oraConnectionString)]
+        [DataRow(ASqlManager.DBType.MySql, Utils.mysConnectionString)]
+        [DataRow(ASqlManager.DBType.PostgreSQL, Utils.posConnectionString)]
+        [DataRow(ASqlManager.DBType.Sqlite, Utils.litConnectionString)]
+        [TestMethod]
+        public void DropTableWithRollBackTest(ASqlManager.DBType dBType, string ConnectionString)
+        {
+            int i = Utils.DropTableWithRollBack(dBType, ConnectionString);
+            if (ASqlManager.DataBaseType == ASqlManager.DBType.MySql || ASqlManager.DataBaseType == ASqlManager.DBType.Sqlite) { Assert.AreEqual(0, i); }
+            else { Assert.AreEqual(-1, i); }
+        }
+        
+        [DataRow(ASqlManager.DBType.SqlServer, Utils.sqlConnectionString)]
+        [DataRow(ASqlManager.DBType.Oracle, Utils.oraConnectionString)]
+        [DataRow(ASqlManager.DBType.MySql, Utils.mysConnectionString)]
+        [DataRow(ASqlManager.DBType.PostgreSQL, Utils.posConnectionString)]
+        [DataRow(ASqlManager.DBType.Sqlite, Utils.litConnectionString)]
+        [TestMethod]
+        public void InsertRowTest(ASqlManager.DBType dBType, string ConnectionString)
+        {
+            int i = Utils.InsertRow(dBType, ConnectionString);
+            Assert.AreEqual(1, i);
+        }
+        
+        [DataRow(ASqlManager.DBType.SqlServer, Utils.sqlConnectionString)]
+        [DataRow(ASqlManager.DBType.Oracle, Utils.oraConnectionString)]
+        [DataRow(ASqlManager.DBType.MySql, Utils.mysConnectionString)]
+        [DataRow(ASqlManager.DBType.PostgreSQL, Utils.posConnectionString)]
+        [DataRow(ASqlManager.DBType.Sqlite, Utils.litConnectionString)]
+        [TestMethod]
+        public void InsertRowTransactionTest(ASqlManager.DBType dBType, string ConnectionString)
+        {
+            int i = Utils.InsertRowTransaction(dBType, ConnectionString);
+            Assert.AreEqual(1, i);
+        }
+        
+        [DataRow(ASqlManager.DBType.SqlServer, Utils.sqlConnectionString)]
+        [DataRow(ASqlManager.DBType.Oracle, Utils.oraConnectionString)]
+        [DataRow(ASqlManager.DBType.MySql, Utils.mysConnectionString)]
+        [DataRow(ASqlManager.DBType.PostgreSQL, Utils.posConnectionString)]
+        [DataRow(ASqlManager.DBType.Sqlite, Utils.litConnectionString)]
+        [TestMethod]
+        public void ExecuteScalarTest(ASqlManager.DBType dBType, string ConnectionString)
+        {
+            string name = Utils.ExecuteScalar(dBType, ConnectionString);
+            Assert.AreEqual("first1", name);
+        }
+        
+        [DataRow(ASqlManager.DBType.SqlServer, Utils.sqlConnectionString)]
+        [DataRow(ASqlManager.DBType.Oracle, Utils.oraConnectionString)]
+        [DataRow(ASqlManager.DBType.MySql, Utils.mysConnectionString)]
+        [DataRow(ASqlManager.DBType.PostgreSQL, Utils.posConnectionString)]
+        [DataRow(ASqlManager.DBType.Sqlite, Utils.litConnectionString)]
+        [TestMethod]
+        public void ExecuteReaderTest(ASqlManager.DBType dBType, string ConnectionString)
+        {
+            string i = Utils.ExecuteReader(dBType, ConnectionString);
+            Assert.AreEqual("FIRST1", i.ToUpper());
+        }
+        
+        [DataRow(ASqlManager.DBType.SqlServer, Utils.sqlConnectionString)]
+        [DataRow(ASqlManager.DBType.Oracle, Utils.oraConnectionString)]
+        [DataRow(ASqlManager.DBType.MySql, Utils.mysConnectionString)]
+        [DataRow(ASqlManager.DBType.PostgreSQL, Utils.posConnectionString)]
+        [DataRow(ASqlManager.DBType.Sqlite, Utils.litConnectionString)]
+        [TestMethod]
+        public void DataAdapterTest(ASqlManager.DBType dBType, string ConnectionString)
+        {
+            int i = Utils.DataAdapter(dBType, ConnectionString);
+            Assert.AreEqual(1, i);
+        }
+        
+        [DataRow(ASqlManager.DBType.SqlServer, Utils.sqlConnectionString)]
+        [DataRow(ASqlManager.DBType.Oracle, Utils.oraConnectionString)]
+        [DataRow(ASqlManager.DBType.MySql, Utils.mysConnectionString)]
+        [DataRow(ASqlManager.DBType.PostgreSQL, Utils.posConnectionString)]
+        [DataRow(ASqlManager.DBType.Sqlite, Utils.litConnectionString)]
+        [TestMethod]
+        public void AllDbBasicFunctionalitiesTest(ASqlManager.DBType dBType, string ConnectionString) 
+        {
+            string check = Utils.CheckTable(dBType, ConnectionString);
+            if ("PERSON" == check.ToUpper()) 
+            {
+                Utils.DropTable(dBType, ConnectionString);
+            }
+            int i = 1;
+            i = Utils.CreateTable(dBType, ConnectionString);
+            int count = 0;
+            count = Utils.InsertRow(dBType, ConnectionString);
+            count = Utils.InsertRowTransaction(dBType, ConnectionString);
+            string name = "";
+            name = Utils.ExecuteScalar(dBType, ConnectionString);
+            name = Utils.ExecuteReader(dBType, ConnectionString);
+            count = Utils.DataAdapter(dBType, ConnectionString);
+        }
+
     }
 }

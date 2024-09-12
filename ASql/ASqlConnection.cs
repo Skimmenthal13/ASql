@@ -11,6 +11,9 @@ using Npgsql;
 
 using ZstdSharp.Unsafe;
 using Microsoft.Data.Sqlite;
+using ASql.Events;
+using ASql.Utils;
+using System.Reflection;
 
 namespace ASql
 {
@@ -276,11 +279,12 @@ namespace ASql
                     break;
                 default:
                     throw new NotSupportedException();
-            }
+            }            
         }
 
         protected override DbTransaction BeginDbTransaction(System.Data.IsolationLevel isolationLevel)
         {
+            DbTransaction trans = null;
             switch (ASqlManager.DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
@@ -291,16 +295,21 @@ namespace ASql
                     {
                         isolationLevel = IsolationLevel.ReadCommitted;
                     }
-                    return (DbTransaction)_oraConn.BeginTransaction(isolationLevel);
+                    trans = (DbTransaction)_oraConn.BeginTransaction(isolationLevel);
+                    break;
                 case ASqlManager.DBType.MySql:
-                    return (DbTransaction)_mysConn.BeginTransaction(isolationLevel);
+                    trans = (DbTransaction)_mysConn.BeginTransaction(isolationLevel);
+                    break;
                 case ASqlManager.DBType.PostgreSQL:
-                    return (DbTransaction)_posConn.BeginTransaction(isolationLevel);
+                    trans = (DbTransaction)_posConn.BeginTransaction(isolationLevel);
+                    break;
                 case ASqlManager.DBType.Sqlite:
-                    return (DbTransaction)_litConn.BeginTransaction(isolationLevel);
+                    trans = (DbTransaction)_litConn.BeginTransaction(isolationLevel);
+                    break;
                 default:
                     throw new NotSupportedException();
             }
+            return trans;
         }
 
         protected override DbCommand CreateDbCommand()

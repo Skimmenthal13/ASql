@@ -1,4 +1,5 @@
 ﻿using ASql.Events;
+using ASql.Utils;
 using Microsoft.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using Npgsql;
@@ -7,6 +8,7 @@ using Oracle.ManagedDataAccess.Client;
 using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
+using System.Reflection;
 
 
 namespace ASql
@@ -103,11 +105,9 @@ namespace ASql
                     throw new NotSupportedException();
             }
             double totalMs = (DateTime.Now - startTime).TotalMilliseconds;
-            OnDataAdapterFillEnd?.Invoke(this, new DataAdapterFillEndEventArgs { Query = query, TotalMilliseconds = totalMs, aSqlParameters = _cmd.aSqlParameters });
-            OnGenericQueryEnd?.Invoke(this, new GenericQueryEndEventArgs { Query = query, TotalMilliseconds = totalMs, aSqlParameters = _cmd.aSqlParameters });
+            OnGenericQueryEnd?.Invoke(this, new GenericQueryEndEventArgs {Method=ReflectionHelper.GetMethodFullName(MethodBase.GetCurrentMethod()), Query = query, TotalMilliseconds = totalMs, aSqlParameters = _cmd.aSqlParameters });
             return res;
         }
-        public event EventHandler<DataAdapterFillEndEventArgs> OnDataAdapterFillEnd;
         public event EventHandler<GenericQueryEndEventArgs> OnGenericQueryEnd;
     }
 }

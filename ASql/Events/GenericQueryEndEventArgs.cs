@@ -8,6 +8,7 @@ namespace ASql.Events
 {
     public class GenericQueryEndEventArgs : EventArgs
     {
+        public string Method { get; set; }
         /// <summary>
         /// Query.
         /// </summary>

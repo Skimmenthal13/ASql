@@ -1,4 +1,6 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using ASql.Events;
+using ASql.Utils;
+using Microsoft.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using Npgsql;
 using Oracle.ManagedDataAccess.Client;
@@ -8,6 +10,7 @@ using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -84,6 +87,7 @@ namespace ASql
 
         public override void Rollback()
         {
+            DateTime startTime = DateTime.Now;
             switch (ASqlManager.DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
