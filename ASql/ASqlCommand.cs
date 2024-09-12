@@ -1,4 +1,6 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using ASql.Events;
+using ASql.Utils;
+using Microsoft.Data.Sqlite;
 using MySql.Data.MySqlClient;
 using Npgsql;
 using Oracle.ManagedDataAccess.Client;
@@ -8,6 +10,7 @@ using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -427,40 +430,63 @@ namespace ASql
         public override int ExecuteNonQuery()
         {
             PopulateParameters();
+            string query = this.CommandText;
+            DateTime startTime = DateTime.Now;
+            int res = 0;
             switch (ASqlManager.DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
-                    return _sqlCmd.ExecuteNonQuery();
+                    res = _sqlCmd.ExecuteNonQuery();
+                    break;
                 case ASqlManager.DBType.Oracle:
-                    return _oraCmd.ExecuteNonQuery();
+                    res = _oraCmd.ExecuteNonQuery();
+                    break;
                 case ASqlManager.DBType.MySql:
-                    return _mysCmd.ExecuteNonQuery();
+                    res = _mysCmd.ExecuteNonQuery();
+                    break;
                 case ASqlManager.DBType.PostgreSQL:
-                    return _posCmd.ExecuteNonQuery();
+                    res = _posCmd.ExecuteNonQuery();
+                    break;
                 case ASqlManager.DBType.Sqlite:
-                    return _litCmd.ExecuteNonQuery();
+                    res = _litCmd.ExecuteNonQuery();
+                    break;
                 default:
                     throw new NotSupportedException();
             }
+            double totalMs = (DateTime.Now - startTime).TotalMilliseconds;
+            OnGenericQueryEnd?.Invoke(this, new GenericQueryEndEventArgs { Method = ReflectionHelper.GetMethodFullName(MethodBase.GetCurrentMethod()), Query = query, TotalMilliseconds = totalMs, aSqlParameters = this.aSqlParameters });
+            return res;
+            
         }
         public override object ExecuteScalar()
         {
             PopulateParameters();
+            string query = this.CommandText;
+            DateTime startTime = DateTime.Now;
+            object res = null;
             switch (ASqlManager.DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
-                    return _sqlCmd.ExecuteScalar();
+                    res = _sqlCmd.ExecuteScalar();
+                    break;
                 case ASqlManager.DBType.Oracle:
-                    return _oraCmd.ExecuteScalar();
+                    res = _oraCmd.ExecuteScalar();
+                    break;
                 case ASqlManager.DBType.MySql:
-                    return _mysCmd.ExecuteScalar();
+                    res = _mysCmd.ExecuteScalar();
+                    break;
                 case ASqlManager.DBType.PostgreSQL:
-                    return _posCmd.ExecuteScalar();
+                    res = _posCmd.ExecuteScalar();
+                    break;
                 case ASqlManager.DBType.Sqlite:
-                    return _litCmd.ExecuteScalar();
+                    res = _litCmd.ExecuteScalar();
+                    break;
                 default:
                     throw new NotSupportedException();
             }
+            double totalMs = (DateTime.Now - startTime).TotalMilliseconds;
+            OnGenericQueryEnd?.Invoke(this, new GenericQueryEndEventArgs { Method = ReflectionHelper.GetMethodFullName(MethodBase.GetCurrentMethod()), Query = query, TotalMilliseconds = totalMs, aSqlParameters = this.aSqlParameters });
+            return res;
         }
 
         public override void Prepare()
@@ -509,21 +535,32 @@ namespace ASql
         protected override DbDataReader ExecuteDbDataReader(CommandBehavior behavior)
         {
             PopulateParameters();
+            string query = this.CommandText;
+            DateTime startTime = DateTime.Now;
+            DbDataReader res = null;
             switch (ASqlManager.DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
-                    return _sqlCmd.ExecuteReader(behavior);
+                    res = _sqlCmd.ExecuteReader(behavior);
+                    break;
                 case ASqlManager.DBType.Oracle:
-                    return _oraCmd.ExecuteReader(behavior);
+                    res = _oraCmd.ExecuteReader(behavior);
+                    break;
                 case ASqlManager.DBType.MySql:
-                    return _mysCmd.ExecuteReader(behavior);
+                    res = _mysCmd.ExecuteReader(behavior);
+                    break;
                 case ASqlManager.DBType.PostgreSQL:
-                    return _posCmd.ExecuteReader(behavior);
+                    res = _posCmd.ExecuteReader(behavior);
+                    break;
                 case ASqlManager.DBType.Sqlite:
-                    return _litCmd.ExecuteReader(behavior);
+                    res = _litCmd.ExecuteReader(behavior);
+                    break;
                 default:
                     throw new NotSupportedException();
             }
+            double totalMs = (DateTime.Now - startTime).TotalMilliseconds;
+            OnGenericQueryEnd?.Invoke(this, new GenericQueryEndEventArgs { Method = ReflectionHelper.GetMethodFullName(MethodBase.GetCurrentMethod()), Query = query, TotalMilliseconds = totalMs, aSqlParameters = this.aSqlParameters });
+            return res;
         }
 
         private void PopulateParameters()
@@ -604,5 +641,6 @@ namespace ASql
                     throw new NotSupportedException();
             }
         }
+        public event EventHandler<GenericQueryEndEventArgs> OnGenericQueryEnd;
     }
 }
