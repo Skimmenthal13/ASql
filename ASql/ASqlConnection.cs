@@ -14,6 +14,7 @@ using Microsoft.Data.Sqlite;
 using ASql.Events;
 using ASql.Utils;
 using System.Reflection;
+using static ASql.ASqlManager;
 
 namespace ASql
 {
@@ -25,9 +26,14 @@ namespace ASql
         MySqlConnection _mysConn;
         NpgsqlConnection _posConn;
         SqliteConnection _litConn;
+
+        
+        public DBType DataBaseType { get; set; }
+
         public ASqlConnection()
         {
-            switch (ASqlManager.DataBaseType)
+            DataBaseType = ASqlManager.DataBaseType;
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     _sqlConn = new SqlConnection();
@@ -50,7 +56,56 @@ namespace ASql
         }
         public ASqlConnection(string connectionString)
         {
-            switch (ASqlManager.DataBaseType)
+            DataBaseType = ASqlManager.DataBaseType;
+            switch (DataBaseType)
+            {
+                case ASqlManager.DBType.SqlServer:
+                    _sqlConn = new SqlConnection(connectionString);
+                    break;
+                case ASqlManager.DBType.Oracle:
+                    _oraConn = new OracleConnection(connectionString);
+                    break;
+                case ASqlManager.DBType.MySql:
+                    _mysConn = new MySqlConnection(connectionString);
+                    break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posConn = new NpgsqlConnection(connectionString);
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litConn = new SqliteConnection(connectionString);
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+        public ASqlConnection(DBType dbType)
+        {
+            DataBaseType = dbType;
+            switch (DataBaseType)
+            {
+                case ASqlManager.DBType.SqlServer:
+                    _sqlConn = new SqlConnection();
+                    break;
+                case ASqlManager.DBType.Oracle:
+                    _oraConn = new OracleConnection();
+                    break;
+                case ASqlManager.DBType.MySql:
+                    _mysConn = new MySqlConnection();
+                    break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posConn = new NpgsqlConnection();
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litConn = new SqliteConnection();
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+        public ASqlConnection(DBType dbType, string connectionString)
+        {
+            DataBaseType = dbType;
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     _sqlConn = new SqlConnection(connectionString);
@@ -93,7 +148,7 @@ namespace ASql
         }
         public override string ConnectionString {
             get {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         return _sqlConn.ConnectionString;
@@ -110,7 +165,7 @@ namespace ASql
                 }
             }
             set {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         _sqlConn.ConnectionString = value;
@@ -136,7 +191,7 @@ namespace ASql
         public override string Database => GetDaTabase();
         private string GetDaTabase()
         {
-            switch (ASqlManager.DataBaseType)
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     return _sqlConn.Database;
@@ -157,7 +212,7 @@ namespace ASql
         public override string DataSource => GetDataSource();
         private string GetDataSource()
         {
-            switch (ASqlManager.DataBaseType)
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     return _sqlConn.DataSource;
@@ -176,7 +231,7 @@ namespace ASql
         public override string ServerVersion => GetServerVersion();
         private string GetServerVersion()
         {
-            switch (ASqlManager.DataBaseType)
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     return _sqlConn.ServerVersion;
@@ -195,7 +250,7 @@ namespace ASql
         public override ConnectionState State => GetState();
         private ConnectionState GetState()
         {
-            switch (ASqlManager.DataBaseType)
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     return _sqlConn.State;
@@ -213,7 +268,7 @@ namespace ASql
         }
         public override void ChangeDatabase(string databaseName)
         {
-            switch (ASqlManager.DataBaseType)
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     _sqlConn.ChangeDatabase(databaseName);
@@ -237,7 +292,7 @@ namespace ASql
 
         public override void Close()
         {
-            switch (ASqlManager.DataBaseType)
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     _sqlConn.Close();
@@ -260,7 +315,7 @@ namespace ASql
         }
         public override void Open()
         {
-            switch (ASqlManager.DataBaseType)
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     _sqlConn.Open();
@@ -285,7 +340,7 @@ namespace ASql
         protected override DbTransaction BeginDbTransaction(System.Data.IsolationLevel isolationLevel)
         {
             DbTransaction trans = null;
-            switch (ASqlManager.DataBaseType)
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     return (DbTransaction)_sqlConn.BeginTransaction(isolationLevel);
@@ -314,7 +369,7 @@ namespace ASql
 
         protected override DbCommand CreateDbCommand()
         {
-            switch (ASqlManager.DataBaseType)
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     return _sqlConn.CreateCommand();
@@ -333,7 +388,7 @@ namespace ASql
 
         public void Dispose()
         {
-            switch (ASqlManager.DataBaseType)
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     if (_sqlConn != null && _sqlConn.State != ConnectionState.Closed) 

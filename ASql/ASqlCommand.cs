@@ -13,6 +13,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using static ASql.ASqlManager;
 
 namespace ASql
 {
@@ -23,9 +24,13 @@ namespace ASql
         internal MySqlCommand _mysCmd;
         internal NpgsqlCommand _posCmd;
         internal SqliteCommand _litCmd;
+
+        public DBType DataBaseType { get; set; }
+
         public ASqlCommand()
         {
-            switch (ASqlManager.DataBaseType)
+            DataBaseType = ASqlManager.DataBaseType;
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     _sqlCmd = new SqlCommand();
@@ -48,7 +53,8 @@ namespace ASql
         }
         public ASqlCommand(string CommandText)
         {
-            switch (ASqlManager.DataBaseType)
+            DataBaseType = ASqlManager.DataBaseType;
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     _sqlCmd = new SqlCommand(CommandText);
@@ -71,7 +77,8 @@ namespace ASql
         }
         public ASqlCommand(string CommandText, ASqlConnection connection)
         {
-            switch (ASqlManager.DataBaseType)
+            DataBaseType = connection.DataBaseType;
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     _sqlCmd = new SqlCommand(CommandText, connection.GetSqlConn());
@@ -96,7 +103,7 @@ namespace ASql
         public ASqlParameterCollection aSqlParameters => m_parameterCollection ??= [];
         public override string CommandText {
             get {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         return _sqlCmd.CommandText;
@@ -113,7 +120,7 @@ namespace ASql
                 }
             }
             set {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         _sqlCmd.CommandText = value;
@@ -137,7 +144,7 @@ namespace ASql
         }
         public override int CommandTimeout {
             get {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         return _sqlCmd.CommandTimeout;
@@ -154,7 +161,7 @@ namespace ASql
                 }
             }
             set {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         _sqlCmd.CommandTimeout = value;
@@ -178,7 +185,7 @@ namespace ASql
         }
         public override CommandType CommandType {
             get {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         return _sqlCmd.CommandType;
@@ -195,7 +202,7 @@ namespace ASql
                 }
             }
             set {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         _sqlCmd.CommandType = value;
@@ -219,7 +226,7 @@ namespace ASql
         }
         public override bool DesignTimeVisible {
             get {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         return _sqlCmd.DesignTimeVisible;
@@ -236,7 +243,7 @@ namespace ASql
                 }
             }
             set {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         _sqlCmd.DesignTimeVisible = value;
@@ -260,7 +267,7 @@ namespace ASql
         }
         public override UpdateRowSource UpdatedRowSource {
             get {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         return _sqlCmd.UpdatedRowSource;
@@ -277,7 +284,7 @@ namespace ASql
                 }
             }
             set {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         _sqlCmd.UpdatedRowSource = value;
@@ -301,7 +308,7 @@ namespace ASql
         }
         protected override DbConnection DbConnection {
             get {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         return _sqlCmd.Connection;
@@ -318,7 +325,7 @@ namespace ASql
                 }
             }
             set {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         _sqlCmd.Connection = (SqlConnection)value;
@@ -344,7 +351,7 @@ namespace ASql
         protected override DbParameterCollection DbParameterCollection => GetParameterCollection();
         private DbParameterCollection GetParameterCollection()
         {
-            switch (ASqlManager.DataBaseType)
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     return _sqlCmd.Parameters;
@@ -363,7 +370,7 @@ namespace ASql
         
         protected override DbTransaction DbTransaction {
             get {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         return _sqlCmd.Transaction;
@@ -380,7 +387,7 @@ namespace ASql
                 }
             }
             set {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         _sqlCmd.Transaction = (SqlTransaction)value;
@@ -405,7 +412,7 @@ namespace ASql
 
         public override void Cancel()
         {
-            switch (ASqlManager.DataBaseType)
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     _sqlCmd.Cancel();
@@ -433,7 +440,7 @@ namespace ASql
             string query = this.CommandText;
             DateTime startTime = DateTime.Now;
             int res = 0;
-            switch (ASqlManager.DataBaseType)
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     res = _sqlCmd.ExecuteNonQuery();
@@ -464,7 +471,7 @@ namespace ASql
             string query = this.CommandText;
             DateTime startTime = DateTime.Now;
             object res = null;
-            switch (ASqlManager.DataBaseType)
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     res = _sqlCmd.ExecuteScalar();
@@ -491,7 +498,7 @@ namespace ASql
 
         public override void Prepare()
         {
-            switch (ASqlManager.DataBaseType)
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     _sqlCmd.Prepare();
@@ -515,7 +522,7 @@ namespace ASql
 
         protected override DbParameter CreateDbParameter()
         {
-            switch (ASqlManager.DataBaseType)
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     return _sqlCmd.CreateParameter();
@@ -538,7 +545,7 @@ namespace ASql
             string query = this.CommandText;
             DateTime startTime = DateTime.Now;
             DbDataReader res = null;
-            switch (ASqlManager.DataBaseType)
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     res = _sqlCmd.ExecuteReader(behavior);
@@ -565,7 +572,7 @@ namespace ASql
 
         private void PopulateParameters()
         {
-            switch (ASqlManager.DataBaseType)
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     foreach (ASqlParameter asqlPar in this.aSqlParameters)

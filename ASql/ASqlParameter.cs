@@ -11,6 +11,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static ASql.ASqlManager;
 
 namespace ASql
 {
@@ -21,10 +22,14 @@ namespace ASql
         MySqlParameter _mysPrm;
         NpgsqlParameter _posPrm;
         SqliteParameter _litPrm;
+
+        public DBType DataBaseType { get; set; }
+
         internal ASqlParameterCollection? ParameterCollection { get; set; }
         public ASqlParameter() 
         {
-            switch (ASqlManager.DataBaseType)
+            DataBaseType = ASqlManager.DataBaseType;
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     _sqlPrm = new SqlParameter();
@@ -47,7 +52,8 @@ namespace ASql
         }
         public ASqlParameter(string parameterName, object value)
         {
-            switch (ASqlManager.DataBaseType)
+            DataBaseType = ASqlManager.DataBaseType;
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     _sqlPrm = new SqlParameter(parameterName, value);
@@ -70,7 +76,8 @@ namespace ASql
         }
         public ASqlParameter(string parameterName, DbType type)
         {
-            switch (ASqlManager.DataBaseType)
+            DataBaseType = ASqlManager.DataBaseType;
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     _sqlPrm = new SqlParameter(parameterName, type);
@@ -93,7 +100,8 @@ namespace ASql
         }
         public ASqlParameter(string parameterName, DbType type, int size)
         {
-            switch (ASqlManager.DataBaseType)
+            DataBaseType = ASqlManager.DataBaseType;
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     _sqlPrm = new SqlParameter(parameterName, (SqlDbType)type, size);
@@ -116,7 +124,128 @@ namespace ASql
         }
         public ASqlParameter(string parameterName, DbType type, int size, string sourceColumn)
         {
-            switch (ASqlManager.DataBaseType)
+            DataBaseType = ASqlManager.DataBaseType;
+            switch (DataBaseType)
+            {
+                case ASqlManager.DBType.SqlServer:
+                    _sqlPrm = new SqlParameter(parameterName, (SqlDbType)type, size, sourceColumn);
+                    break;
+                case ASqlManager.DBType.Oracle:
+                    _oraPrm = new OracleParameter(parameterName, (OracleDbType)type, size, sourceColumn);
+                    break;
+                case ASqlManager.DBType.MySql:
+                    _mysPrm = new MySqlParameter(parameterName, (MySqlDbType)type, size, sourceColumn);
+                    break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posPrm = new NpgsqlParameter(parameterName, (NpgsqlDbType)type, size, sourceColumn);
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litPrm = new SqliteParameter(parameterName, (SqliteType)type, size, sourceColumn);
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+        public ASqlParameter(DBType dbType)
+        {
+            DataBaseType = dbType;
+            switch (DataBaseType)
+            {
+                case ASqlManager.DBType.SqlServer:
+                    _sqlPrm = new SqlParameter();
+                    break;
+                case ASqlManager.DBType.Oracle:
+                    _oraPrm = new OracleParameter();
+                    break;
+                case ASqlManager.DBType.MySql:
+                    _mysPrm = new MySqlParameter();
+                    break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posPrm = new NpgsqlParameter();
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litPrm = new SqliteParameter();
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+        public ASqlParameter(DBType dbType,string parameterName, object value)
+        {
+            DataBaseType = dbType;
+            switch (DataBaseType)
+            {
+                case ASqlManager.DBType.SqlServer:
+                    _sqlPrm = new SqlParameter(parameterName, value);
+                    break;
+                case ASqlManager.DBType.Oracle:
+                    _oraPrm = new OracleParameter(parameterName, value);
+                    break;
+                case ASqlManager.DBType.MySql:
+                    _mysPrm = new MySqlParameter(parameterName, value);
+                    break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posPrm = new NpgsqlParameter(parameterName, value);
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litPrm = new SqliteParameter(parameterName, value);
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+        public ASqlParameter(DBType dbType, string parameterName, DbType type)
+        {
+            DataBaseType = dbType;
+            switch (DataBaseType)
+            {
+                case ASqlManager.DBType.SqlServer:
+                    _sqlPrm = new SqlParameter(parameterName, type);
+                    break;
+                case ASqlManager.DBType.Oracle:
+                    _oraPrm = new OracleParameter(parameterName, type);
+                    break;
+                case ASqlManager.DBType.MySql:
+                    _mysPrm = new MySqlParameter(parameterName, type);
+                    break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posPrm = new NpgsqlParameter(parameterName, type);
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litPrm = new SqliteParameter(parameterName, type);
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+        public ASqlParameter(DBType dbType, string parameterName, DbType type, int size)
+        {
+            DataBaseType = dbType;
+            switch (DataBaseType)
+            {
+                case ASqlManager.DBType.SqlServer:
+                    _sqlPrm = new SqlParameter(parameterName, (SqlDbType)type, size);
+                    break;
+                case ASqlManager.DBType.Oracle:
+                    _oraPrm = new OracleParameter(parameterName, (OracleDbType)type, size);
+                    break;
+                case ASqlManager.DBType.MySql:
+                    _mysPrm = new MySqlParameter(parameterName, (MySqlDbType)type, size);
+                    break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posPrm = new NpgsqlParameter(parameterName, (NpgsqlDbType)type, size);
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litPrm = new SqliteParameter(parameterName, (SqliteType)type, size);
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+        public ASqlParameter(DBType dbType, string parameterName, DbType type, int size, string sourceColumn)
+        {
+            DataBaseType = dbType;
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     _sqlPrm = new SqlParameter(parameterName, (SqlDbType)type, size, sourceColumn);
@@ -140,7 +269,7 @@ namespace ASql
         public override DbType DbType 
         {
             get {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         return _sqlPrm.DbType;
@@ -157,7 +286,7 @@ namespace ASql
                 }
             }
             set {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         _sqlPrm.DbType = value;
@@ -183,7 +312,7 @@ namespace ASql
         public override ParameterDirection Direction 
         {
             get {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         return _sqlPrm.Direction;
@@ -200,7 +329,7 @@ namespace ASql
                 }
             }
             set {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         _sqlPrm.Direction = value;
@@ -225,7 +354,7 @@ namespace ASql
         public override bool IsNullable 
         {
             get {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         return _sqlPrm.IsNullable;
@@ -242,7 +371,7 @@ namespace ASql
                 }
             }
             set {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         _sqlPrm.IsNullable = value;
@@ -267,7 +396,7 @@ namespace ASql
         public override string ParameterName 
         {
             get {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         return _sqlPrm.ParameterName;
@@ -284,7 +413,7 @@ namespace ASql
                 }
             }
             set {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         _sqlPrm.ParameterName = value;
@@ -309,7 +438,7 @@ namespace ASql
         public override int Size 
         {
             get {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         return _sqlPrm.Size;
@@ -326,7 +455,7 @@ namespace ASql
                 }
             }
             set {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         _sqlPrm.Size = value;
@@ -351,7 +480,7 @@ namespace ASql
         public override string SourceColumn 
         {
             get {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         return _sqlPrm.SourceColumn;
@@ -368,7 +497,7 @@ namespace ASql
                 }
             }
             set {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         _sqlPrm.SourceColumn = value;
@@ -393,7 +522,7 @@ namespace ASql
         public override bool SourceColumnNullMapping 
         {
             get {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         return _sqlPrm.SourceColumnNullMapping;
@@ -410,7 +539,7 @@ namespace ASql
                 }
             }
             set {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         _sqlPrm.SourceColumnNullMapping = value;
@@ -435,7 +564,7 @@ namespace ASql
         public override object Value 
         {
             get {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         return _sqlPrm.Value;
@@ -452,7 +581,7 @@ namespace ASql
                 }
             }
             set {
-                switch (ASqlManager.DataBaseType)
+                switch (DataBaseType)
                 {
                     case ASqlManager.DBType.SqlServer:
                         _sqlPrm.Value = value;
@@ -479,7 +608,7 @@ namespace ASql
 
         public override void ResetDbType()
         {
-            switch (ASqlManager.DataBaseType)
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     _sqlPrm.ResetSqlDbType();

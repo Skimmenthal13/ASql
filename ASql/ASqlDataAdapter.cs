@@ -9,6 +9,7 @@ using System.Data;
 using System.Data.Common;
 using System.Data.SqlClient;
 using System.Reflection;
+using static ASql.ASqlManager;
 
 
 namespace ASql
@@ -21,11 +22,38 @@ namespace ASql
         NpgsqlDataAdapter _posDataAdapter;
         SqliteDataAdapter _litDataAdapter;
 
+        public DBType DataBaseType { get; set; }
+
         ASqlCommand _cmd;
 
         public ASqlDataAdapter() 
         {
-            switch (ASqlManager.DataBaseType)
+            DataBaseType = ASqlManager.DataBaseType;
+            switch (DataBaseType)
+            {
+                case ASqlManager.DBType.SqlServer:
+                    _sqlDataAdapter = new SqlDataAdapter();
+                    break;
+                case ASqlManager.DBType.Oracle:
+                    _oraDataAdapter = new OracleDataAdapter();
+                    break;
+                case ASqlManager.DBType.MySql:
+                    _mysDataAdapter = new MySqlDataAdapter();
+                    break;
+                case ASqlManager.DBType.PostgreSQL:
+                    _posDataAdapter = new NpgsqlDataAdapter();
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    _litDataAdapter = new SqliteDataAdapter();
+                    break;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+        public ASqlDataAdapter(DBType dBType)
+        {
+            DataBaseType = dBType;
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     _sqlDataAdapter = new SqlDataAdapter();
@@ -48,8 +76,9 @@ namespace ASql
         }
         public ASqlDataAdapter(ASqlCommand command) 
         {
+            DataBaseType = command.DataBaseType;
             _cmd = command;
-            switch (ASqlManager.DataBaseType)
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                     _sqlDataAdapter = new SqlDataAdapter(command._sqlCmd);
@@ -70,21 +99,22 @@ namespace ASql
                     throw new NotSupportedException();
             }
         }
-        public ASqlDataAdapter(string selectCommandText, ASqlConnection selectConnection) 
-        {
+        //TODO
+        //public ASqlDataAdapter(string selectCommandText, ASqlConnection selectConnection) 
+        //{
 
-        }
-        public ASqlDataAdapter(string selectCommandText, string selectConnectionString)
-        {
+        //}
+        //public ASqlDataAdapter(string selectCommandText, string selectConnectionString)
+        //{
 
-        }
+        //}
 
         public int Fill(DataSet dataSet)
         {
             DateTime startTime = DateTime.Now;
             int res = 0;
             string query = _cmd.CommandText;
-            switch (ASqlManager.DataBaseType)
+            switch (DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:
                        res = _sqlDataAdapter.Fill(dataSet);

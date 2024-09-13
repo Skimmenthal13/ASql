@@ -1,4 +1,5 @@
 ﻿using ASql.Events;
+using Google.Protobuf.WellKnownTypes;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -6,6 +7,8 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using static ASql.ASqlManager;
 
 namespace ASql.Tester
 {
@@ -57,9 +60,9 @@ namespace ASql.Tester
         {
             Console.WriteLine(e.Method+" "+e.Query +" "+ e.TotalMilliseconds);
         }
-       
-        #endregion
 
+        #endregion
+        #region SingleDataBasesMethods
         public static int CreateTable(ASqlManager.DBType dBType, string ConnectionString, string sql = "")
         {
             if (string.IsNullOrEmpty(sql))
@@ -277,19 +280,6 @@ namespace ASql.Tester
                 }
             }
             int r = 0;
-            Dictionary<string, object> d = new Dictionary<string, object>();
-            for (int i = 1; i < 2; i++)
-            {
-                d.Add("firstname", "first" + i);
-                d.Add("lastname", "last" + i);
-                d.Add("age", i);
-                d.Add("value", i * 1000);
-                d.Add("birthday", DateTime.Now);
-                d.Add("hourly", 123.456);
-                d.Add("picture", Utils._FileBytes);
-                d.Add("guid", Guid.NewGuid());
-                d.Add("active", (i % 2 > 0));
-            }
             ASqlManager.DataBaseType = dBType;
             using (ASqlConnection conn = new ASqlConnection(ConnectionString))
             {
@@ -298,7 +288,7 @@ namespace ASql.Tester
                 cmd.OnGenericQueryEnd += Cmd_OnGenericQueryEnd;
                 string paramChar = "";
 
-                List<ASqlParameter> apc = Utils.GetParametersFromkeyValuePairs(d, paramChar);
+                List<ASqlParameter> apc = Utils.GetASqlParametersFromScratch(paramChar);
                 foreach (ASqlParameter param in apc)
                 {
                     cmd.aSqlParameters.Add(param);
@@ -335,19 +325,6 @@ namespace ASql.Tester
                 }
             }
             int r = 0;
-            Dictionary<string, object> d = new Dictionary<string, object>();
-            for (int i = 1; i < 2; i++)
-            {
-                d.Add("firstname", "first" + i);
-                d.Add("lastname", "last" + i);
-                d.Add("age", i);
-                d.Add("value", i * 1000);
-                d.Add("birthday", DateTime.Now);
-                d.Add("hourly", 123.456);
-                d.Add("picture", Utils._FileBytes);
-                d.Add("guid", Guid.NewGuid());
-                d.Add("active", (i % 2 > 0));
-            }
             ASqlManager.DataBaseType = dBType;
             using (ASqlConnection conn = new ASqlConnection(ConnectionString))
             {
@@ -355,15 +332,12 @@ namespace ASql.Tester
                 DbTransaction trans = conn.BeginTransaction();
                 ASqlCommand cmd = new ASqlCommand(sql, conn);
                 cmd.Transaction = trans;
-
                 string paramChar = "";
-
-                List<ASqlParameter> apc = Utils.GetParametersFromkeyValuePairs(d, paramChar);
+                List<ASqlParameter> apc = Utils.GetASqlParametersFromScratch(paramChar);
                 foreach (ASqlParameter param in apc)
                 {
                     cmd.aSqlParameters.Add(param);
                 }
-
                 r = cmd.ExecuteNonQuery();
                 trans.Rollback();
             }
@@ -492,6 +466,120 @@ namespace ASql.Tester
             }
             return i;
         }
+        #endregion
+        #region MultiDatabaseTests
+        public static void ExecuteScalarMultiConn() 
+        {
+            ASqlManager.DataBaseType = ASqlManager.DBType.MultiDatabase;
+            ASqlConnection sqlConn = new ASqlConnection(ASqlManager.DBType.SqlServer, sqlConnectionString);
+            ASqlConnection oraConn = new ASqlConnection(ASqlManager.DBType.Oracle, oraConnectionString);
+            sqlConn.Open();
+            oraConn.Open();
+            ASqlCommand sqlCmd = new ASqlCommand(sqlSelectFirstName, sqlConn);
+            ASqlCommand oraCmd = new ASqlCommand(oraSelectFirstName, oraConn);
+            ASqlParameter sqlPar = new ASqlParameter(ASqlManager.DBType.SqlServer);
+            sqlPar.ParameterName = "lastname";
+            sqlPar.DbType = DbType.String;
+            sqlPar.Value = "last1";
+            sqlCmd.aSqlParameters.Add(sqlPar);
+            string sqlName = (string)sqlCmd.ExecuteScalar();
+            ASqlParameter oraPar = new ASqlParameter(ASqlManager.DBType.Oracle);
+            oraPar.ParameterName = "lastname";
+            oraPar.DbType = DbType.String;
+            oraPar.Value = "last1";
+            oraCmd.aSqlParameters.Add(oraPar);
+            string oraName = (string)oraCmd.ExecuteScalar();
+            sqlConn.Close();
+            oraConn.Close();
+        }
+        public static void ExecuteReaderMultiConn()
+        {
+            ASqlManager.DataBaseType = ASqlManager.DBType.MultiDatabase;
+            ASqlConnection sqlConn = new ASqlConnection(ASqlManager.DBType.SqlServer, sqlConnectionString);
+            ASqlConnection oraConn = new ASqlConnection(ASqlManager.DBType.Oracle, oraConnectionString);
+            sqlConn.Open();
+            oraConn.Open();
+            ASqlCommand sqlCmd = new ASqlCommand(sqlSelectFirstName, sqlConn);
+            ASqlCommand oraCmd = new ASqlCommand(oraSelectFirstName, oraConn);
+            ASqlParameter sqlPar = new ASqlParameter(ASqlManager.DBType.SqlServer);
+            sqlPar.ParameterName = "lastname";
+            sqlPar.DbType = DbType.String;
+            sqlPar.Value = "last1";
+            sqlCmd.aSqlParameters.Add(sqlPar);
+            string sqlName = "";
+            using (DbDataReader read = sqlCmd.ExecuteReader())
+            {
+                while (read.Read())
+                {
+                    sqlName = read.GetString(read.GetOrdinal("firstname"));
+                }
+            }
+            ASqlParameter oraPar = new ASqlParameter(ASqlManager.DBType.Oracle);
+            oraPar.ParameterName = "lastname";
+            oraPar.DbType = DbType.String;
+            oraPar.Value = "last1";
+            oraCmd.aSqlParameters.Add(oraPar);
+            string oraName = "";
+            using (DbDataReader read = oraCmd.ExecuteReader())
+            {
+                while (read.Read())
+                {
+                    oraName = read.GetString(read.GetOrdinal("firstname"));
+                }
+            }
+            sqlConn.Close();
+            oraConn.Close();
+        }
+
+        public static void InsertRowTransactionWithMultiConn() 
+        {
+            ASqlManager.DataBaseType = ASqlManager.DBType.MultiDatabase;
+            ASqlConnection sqlConn = new ASqlConnection(ASqlManager.DBType.SqlServer, sqlConnectionString);
+            ASqlConnection oraConn = new ASqlConnection(ASqlManager.DBType.Oracle, oraConnectionString);
+            sqlConn.Open();
+            oraConn.Open();
+            DbTransaction sqlTrans = sqlConn.BeginTransaction();
+            DbTransaction oraTrans = oraConn.BeginTransaction();
+            ASqlCommand sqlCmd = new ASqlCommand(sqlInsertRow, sqlConn);
+            ASqlCommand oraCmd = new ASqlCommand(oraInsertRow, oraConn);
+            sqlCmd.Transaction = sqlTrans;
+            oraCmd.Transaction = oraTrans;
+            List<ASqlParameter> sqlApc = Utils.GetASqlParametersFromScratch(sqlConn.DataBaseType,"");
+            List<ASqlParameter> oraApc = Utils.GetASqlParametersFromScratch(oraConn.DataBaseType,"");
+            foreach (ASqlParameter sqlParam in sqlApc)
+            {
+                sqlCmd.aSqlParameters.Add(sqlParam);
+            }
+            int sqlCount = sqlCmd.ExecuteNonQuery();
+            sqlTrans.Rollback();
+            foreach (ASqlParameter param in oraApc)
+            {
+                oraCmd.aSqlParameters.Add(param);
+            }
+            int oraCount = oraCmd.ExecuteNonQuery();
+            oraTrans.Rollback();
+            sqlConn.Close();
+            oraConn.Close();
+        }
+        public static void DataAdapterWithMultiConn() 
+        {
+            ASqlManager.DataBaseType = ASqlManager.DBType.MultiDatabase;
+            ASqlConnection sqlConn = new ASqlConnection(ASqlManager.DBType.SqlServer, sqlConnectionString);
+            ASqlConnection oraConn = new ASqlConnection(ASqlManager.DBType.Oracle, oraConnectionString);
+            sqlConn.Open();
+            oraConn.Open();
+            ASqlCommand sqlCmd = new ASqlCommand(sqlSelectStar, sqlConn);
+            ASqlCommand oraCmd = new ASqlCommand(oraSelectStar, oraConn);
+            ASqlDataAdapter sqlASqlDataAdapter = new ASqlDataAdapter(sqlCmd);
+            DataSet sqlDs = new DataSet();
+            int sqlCount = sqlASqlDataAdapter.Fill(sqlDs);
+            ASqlDataAdapter oraASqlDataAdapter = new ASqlDataAdapter(oraCmd);
+            DataSet oraDs = new DataSet();
+            int oraCount = oraASqlDataAdapter.Fill(oraDs);
+            sqlConn.Close();
+            oraConn.Close();
+        }
+        #endregion
         #region Utilities
         public static string CreateSequnce(string tableName)
         {
@@ -526,6 +614,40 @@ namespace ASql.Tester
                 i = cmd.ExecuteNonQuery();
                 Assert.AreEqual(-1, i);
             }
+        }
+        static internal List<ASqlParameter> GetASqlParametersFromScratch(string paramChar) 
+        {
+            Dictionary<string, object> d = new Dictionary<string, object>();
+            for (int i = 1; i < 2; i++)
+            {
+                d.Add("firstname", "first" + i);
+                d.Add("lastname", "last" + i);
+                d.Add("age", i);
+                d.Add("value", i * 1000);
+                d.Add("birthday", DateTime.Now);
+                d.Add("hourly", 123.456);
+                d.Add("picture", Utils._FileBytes);
+                d.Add("guid", Guid.NewGuid());
+                d.Add("active", (i % 2 > 0));
+            }
+            return GetParametersFromkeyValuePairs(d,paramChar);
+        }
+        static internal List<ASqlParameter> GetASqlParametersFromScratch(DBType databaseType, string paramChar)
+        {
+            Dictionary<string, object> d = new Dictionary<string, object>();
+            for (int i = 1; i < 2; i++)
+            {
+                d.Add("firstname", "first" + i);
+                d.Add("lastname", "last" + i);
+                d.Add("age", i);
+                d.Add("value", i * 1000);
+                d.Add("birthday", DateTime.Now);
+                d.Add("hourly", 123.456);
+                d.Add("picture", Utils._FileBytes);
+                d.Add("guid", Guid.NewGuid());
+                d.Add("active", (i % 2 > 0));
+            }
+            return GetParametersFromkeyValuePairs(databaseType, d, paramChar);
         }
         static internal List<ASqlParameter> GetParametersFromkeyValuePairs(Dictionary<string, object> keyValuePairs, string paramChar)
         {
@@ -598,6 +720,87 @@ namespace ASql.Tester
                 else
                 {
                     ASqlParameter para = new ASqlParameter();
+                    para.ParameterName = paramChar + currKvp.Key;
+                    para.Direction = ParameterDirection.Input;
+                    para.Value = currKvp.Value;
+                    prm.Add(para);
+                }
+
+
+            }
+            return prm;
+        }
+        static internal List<ASqlParameter> GetParametersFromkeyValuePairs(DBType databaseType, Dictionary<string, object> keyValuePairs, string paramChar)
+        {
+            string vals = "";
+            List<ASqlParameter> prm = new List<ASqlParameter>();
+            foreach (KeyValuePair<string, object> currKvp in keyValuePairs)
+            {
+
+                if (currKvp.Value is DateTime
+                    || currKvp.Value is DateTime?)
+                {
+                    ASqlParameter para = new ASqlParameter(databaseType);
+                    para.ParameterName = paramChar + currKvp.Key;
+                    para.Direction = ParameterDirection.Input;
+                    para.Value = currKvp.Value;
+                    prm.Add(para);
+                }
+                else if (currKvp.Value is DateTimeOffset
+                    || currKvp.Value is DateTimeOffset?)
+                {
+                    ASqlParameter para = new ASqlParameter(databaseType);
+                    para.ParameterName = paramChar + currKvp.Key;
+                    para.Direction = ParameterDirection.Input;
+                    para.Value = currKvp.Value;
+                    prm.Add(para);
+                }
+                else if (currKvp.Value is int
+                    || currKvp.Value is long
+                    || currKvp.Value is decimal)
+                {
+                    ASqlParameter para = new ASqlParameter(databaseType);
+                    para.ParameterName = paramChar + currKvp.Key;
+                    para.Direction = ParameterDirection.Input;
+                    para.Value = currKvp.Value;
+                    prm.Add(para);
+                }
+                else if (currKvp.Value is bool)
+                {
+                    int val = ((bool)currKvp.Value ? 1 : 0);
+                    ASqlParameter para = new ASqlParameter(databaseType);
+                    para.ParameterName = paramChar + currKvp.Key;
+                    para.Direction = ParameterDirection.Input;
+                    para.Value = val;
+                    prm.Add(para);
+                }
+                else if (currKvp.Value is byte[])
+                {
+                    ASqlParameter para = new ASqlParameter(databaseType);
+                    para.ParameterName = paramChar + currKvp.Key;
+                    para.Direction = ParameterDirection.Input;
+                    para.Value = currKvp.Value;
+                    prm.Add(para);
+                }
+                else if (currKvp.Value is string)
+                {
+                    ASqlParameter para = new ASqlParameter(databaseType);
+                    para.ParameterName = paramChar + currKvp.Key;
+                    para.Direction = ParameterDirection.Input;
+                    para.Value = currKvp.Value;
+                    prm.Add(para);
+                }
+                else if (currKvp.Value is Guid)
+                {
+                    ASqlParameter para = new ASqlParameter(databaseType);
+                    para.ParameterName = paramChar + currKvp.Key;
+                    para.Direction = ParameterDirection.Input;
+                    para.Value = currKvp.Value.ToString();
+                    prm.Add(para);
+                }
+                else
+                {
+                    ASqlParameter para = new ASqlParameter(databaseType);
                     para.ParameterName = paramChar + currKvp.Key;
                     para.Direction = ParameterDirection.Input;
                     para.Value = currKvp.Value;

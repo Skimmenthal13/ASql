@@ -15,7 +15,8 @@ namespace ASql
             Oracle,
             MySql,
             PostgreSQL,
-            Sqlite
+            Sqlite,
+            MultiDatabase
             
         }
         public static DBType DataBaseType { get; set; }
