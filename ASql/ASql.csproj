@@ -12,10 +12,10 @@
     <Authors>Skimmenthal13</Authors>
     <Title>ASql C# Library that let use multiple types of databases (SqlServer, Oracle, MySql, PostgreSQL, Sqlite) with same code</Title>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <Version>2.0.1</Version>
-    <AssemblyVersion>2.0.1</AssemblyVersion>
-    <FileVersion>2.0.1</FileVersion>
-    <PackageTags>Sql;SqlServer;Oracle;MySql;PostgreSQL;Sqlite;Database;Multidatabase;ORM;Events;Trace;Performance;Log</PackageTags>
+    <Version>2.5.0</Version>
+    <AssemblyVersion>2.5.0</AssemblyVersion>
+    <FileVersion>2.5.0</FileVersion>
+    <PackageTags>Sql;SqlServer;Oracle;MySql;PostgreSQL;Sqlite;Database;Multidatabase;ORM;Events;Trace;Performance;Log;Migrator;Transactional</PackageTags>
     <Description>ASql C# Library that let use multiple types of databases (SqlServer, Oracle, MySql, PostgreSQL, Sqlite) with same code</Description>
   </PropertyGroup>
 
