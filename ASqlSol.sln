@@ -5,7 +5,7 @@ VisualStudioVersion = 17.11.35219.272
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ASql", "ASql\ASql.csproj", "{65B35A17-BEE5-4DBF-AE43-29F045EF8547}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASql.Tester", "ASql.Tester\ASql.Tester.csproj", "{2A9D4EA6-ABA6-4EDD-A3E3-70ABBE882BF3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ASql.Tester", "ASql.Tester\ASql.Tester.csproj", "{2A9D4EA6-ABA6-4EDD-A3E3-70ABBE882BF3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
