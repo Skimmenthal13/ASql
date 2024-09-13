@@ -154,25 +154,6 @@ namespace ASql.Tester
             name = Utils.ExecuteReader(dBType, ConnectionString);
             count = Utils.DataAdapter(dBType, ConnectionString);
         }
-        [TestMethod]
-        public void ExecuteScalarMultiConnTest() 
-        {
-            Utils.ExecuteScalarMultiConn();
-        }
-        [TestMethod]
-        public void ExecuteReaderMultiConnTest()
-        {
-            Utils.ExecuteReaderMultiConn();
-        }
-        [TestMethod]
-        public void InsertRowTransactionWithMultiConnTest() 
-        {
-            Utils.InsertRowTransactionWithMultiConn();
-        }
-        [TestMethod]
-        public void DataAdapterWithMultiConnTest() 
-        {
-            Utils.DataAdapterWithMultiConn();
-        }
+        
     }
 }

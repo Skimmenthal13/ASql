@@ -468,116 +468,129 @@ namespace ASql.Tester
         }
         #endregion
         #region MultiDatabaseTests
-        public static void ExecuteScalarMultiConn() 
+       
+        public static string ExecuteScalar(ASqlConnection conn, string sql) 
         {
-            ASqlManager.DataBaseType = ASqlManager.DBType.MultiDatabase;
-            ASqlConnection sqlConn = new ASqlConnection(ASqlManager.DBType.SqlServer, sqlConnectionString);
-            ASqlConnection oraConn = new ASqlConnection(ASqlManager.DBType.Oracle, oraConnectionString);
-            sqlConn.Open();
-            oraConn.Open();
-            ASqlCommand sqlCmd = new ASqlCommand(sqlSelectFirstName, sqlConn);
-            ASqlCommand oraCmd = new ASqlCommand(oraSelectFirstName, oraConn);
-            ASqlParameter sqlPar = new ASqlParameter(ASqlManager.DBType.SqlServer);
-            sqlPar.ParameterName = "lastname";
-            sqlPar.DbType = DbType.String;
-            sqlPar.Value = "last1";
-            sqlCmd.aSqlParameters.Add(sqlPar);
-            string sqlName = (string)sqlCmd.ExecuteScalar();
-            ASqlParameter oraPar = new ASqlParameter(ASqlManager.DBType.Oracle);
-            oraPar.ParameterName = "lastname";
-            oraPar.DbType = DbType.String;
-            oraPar.Value = "last1";
-            oraCmd.aSqlParameters.Add(oraPar);
-            string oraName = (string)oraCmd.ExecuteScalar();
-            sqlConn.Close();
-            oraConn.Close();
+            ASqlCommand cmd = new ASqlCommand(sql, conn);
+            ASqlParameter par = new ASqlParameter(conn.DataBaseType);
+            par.ParameterName = "lastname";
+            par.DbType = DbType.String;
+            par.Value = "last1";
+            cmd.aSqlParameters.Add(par);
+            string name = (string)cmd.ExecuteScalar();
+            return name;
         }
-        public static void ExecuteReaderMultiConn()
+        public static int ExecuteNonQuery(ASqlConnection conn, string sql)
         {
-            ASqlManager.DataBaseType = ASqlManager.DBType.MultiDatabase;
-            ASqlConnection sqlConn = new ASqlConnection(ASqlManager.DBType.SqlServer, sqlConnectionString);
-            ASqlConnection oraConn = new ASqlConnection(ASqlManager.DBType.Oracle, oraConnectionString);
-            sqlConn.Open();
-            oraConn.Open();
-            ASqlCommand sqlCmd = new ASqlCommand(sqlSelectFirstName, sqlConn);
-            ASqlCommand oraCmd = new ASqlCommand(oraSelectFirstName, oraConn);
-            ASqlParameter sqlPar = new ASqlParameter(ASqlManager.DBType.SqlServer);
-            sqlPar.ParameterName = "lastname";
-            sqlPar.DbType = DbType.String;
-            sqlPar.Value = "last1";
-            sqlCmd.aSqlParameters.Add(sqlPar);
-            string sqlName = "";
-            using (DbDataReader read = sqlCmd.ExecuteReader())
+            ASqlCommand cmd = new ASqlCommand(sql, conn);
+            return cmd.ExecuteNonQuery();
+        }
+        
+        public static string ExecuteReader(ASqlConnection conn, string sql) 
+        {
+            string i = "";
+            ASqlCommand cmd = new ASqlCommand(sql, conn);
+            ASqlParameter par = new ASqlParameter(conn.DataBaseType);
+            par.ParameterName = "lastname";
+            par.DbType = DbType.String;
+            par.Value = "last1";
+            cmd.aSqlParameters.Add(par);
+            using (DbDataReader read = cmd.ExecuteReader())
             {
                 while (read.Read())
                 {
-                    sqlName = read.GetString(read.GetOrdinal("firstname"));
+                    i = read.GetString(read.GetOrdinal("firstname"));
                 }
             }
-            ASqlParameter oraPar = new ASqlParameter(ASqlManager.DBType.Oracle);
-            oraPar.ParameterName = "lastname";
-            oraPar.DbType = DbType.String;
-            oraPar.Value = "last1";
-            oraCmd.aSqlParameters.Add(oraPar);
-            string oraName = "";
-            using (DbDataReader read = oraCmd.ExecuteReader())
-            {
-                while (read.Read())
-                {
-                    oraName = read.GetString(read.GetOrdinal("firstname"));
-                }
-            }
-            sqlConn.Close();
-            oraConn.Close();
+            return i;
         }
 
-        public static void InsertRowTransactionWithMultiConn() 
+        
+        public static int InsertRow(ASqlConnection conn, string sql, DbTransaction trans=null) 
         {
-            ASqlManager.DataBaseType = ASqlManager.DBType.MultiDatabase;
-            ASqlConnection sqlConn = new ASqlConnection(ASqlManager.DBType.SqlServer, sqlConnectionString);
-            ASqlConnection oraConn = new ASqlConnection(ASqlManager.DBType.Oracle, oraConnectionString);
-            sqlConn.Open();
-            oraConn.Open();
-            DbTransaction sqlTrans = sqlConn.BeginTransaction();
-            DbTransaction oraTrans = oraConn.BeginTransaction();
-            ASqlCommand sqlCmd = new ASqlCommand(sqlInsertRow, sqlConn);
-            ASqlCommand oraCmd = new ASqlCommand(oraInsertRow, oraConn);
-            sqlCmd.Transaction = sqlTrans;
-            oraCmd.Transaction = oraTrans;
-            List<ASqlParameter> sqlApc = Utils.GetASqlParametersFromScratch(sqlConn.DataBaseType,"");
-            List<ASqlParameter> oraApc = Utils.GetASqlParametersFromScratch(oraConn.DataBaseType,"");
-            foreach (ASqlParameter sqlParam in sqlApc)
+            int r = 0;
+            ASqlCommand cmd = new ASqlCommand(sql, conn);
+            if(trans!=null)
+                cmd.Transaction = trans;
+            string paramChar = "";
+            List<ASqlParameter> apc = Utils.GetASqlParametersFromScratch(conn.DataBaseType,paramChar);
+            foreach (ASqlParameter param in apc)
             {
-                sqlCmd.aSqlParameters.Add(sqlParam);
+                cmd.aSqlParameters.Add(param);
             }
-            int sqlCount = sqlCmd.ExecuteNonQuery();
-            sqlTrans.Rollback();
-            foreach (ASqlParameter param in oraApc)
-            {
-                oraCmd.aSqlParameters.Add(param);
-            }
-            int oraCount = oraCmd.ExecuteNonQuery();
-            oraTrans.Rollback();
-            sqlConn.Close();
-            oraConn.Close();
+            r = cmd.ExecuteNonQuery();
+            return r;
         }
-        public static void DataAdapterWithMultiConn() 
+        
+        public static int DataAdapter(ASqlConnection conn, string sql) 
         {
-            ASqlManager.DataBaseType = ASqlManager.DBType.MultiDatabase;
-            ASqlConnection sqlConn = new ASqlConnection(ASqlManager.DBType.SqlServer, sqlConnectionString);
-            ASqlConnection oraConn = new ASqlConnection(ASqlManager.DBType.Oracle, oraConnectionString);
-            sqlConn.Open();
-            oraConn.Open();
-            ASqlCommand sqlCmd = new ASqlCommand(sqlSelectStar, sqlConn);
-            ASqlCommand oraCmd = new ASqlCommand(oraSelectStar, oraConn);
-            ASqlDataAdapter sqlASqlDataAdapter = new ASqlDataAdapter(sqlCmd);
-            DataSet sqlDs = new DataSet();
-            int sqlCount = sqlASqlDataAdapter.Fill(sqlDs);
-            ASqlDataAdapter oraASqlDataAdapter = new ASqlDataAdapter(oraCmd);
-            DataSet oraDs = new DataSet();
-            int oraCount = oraASqlDataAdapter.Fill(oraDs);
-            sqlConn.Close();
-            oraConn.Close();
+            int i = 0;   
+            ASqlCommand cmd = new ASqlCommand(sql, conn);
+            ASqlDataAdapter aSqlDataAdapter = new ASqlDataAdapter(cmd);
+            DataSet ds = new DataSet();
+            i = aSqlDataAdapter.Fill(ds);
+            return i;
+        }
+        public static string CheckTable(ASqlConnection conn, string sql) 
+        {
+            string table = "";
+            ASqlCommand cmd = new ASqlCommand(sql, conn);
+            switch (conn.DataBaseType)
+            {
+                case ASqlManager.DBType.Oracle:
+                case ASqlManager.DBType.PostgreSQL:
+                    using (DbDataReader read = cmd.ExecuteReader())
+                    {
+                        while (read.Read())
+                        {
+                            table = read.GetString(read.GetOrdinal("table_name"));
+                        }
+                    }
+                    break;
+                case ASqlManager.DBType.SqlServer:
+                    bool exists = (int)cmd.ExecuteScalar() == 1;
+                    if (exists) { table = tableName; }
+                    break;
+                case ASqlManager.DBType.MySql:
+                    using (DbDataReader read = cmd.ExecuteReader())
+                    {
+                        while (read.Read())
+                        {
+                            table = read.GetInt32(read.GetOrdinal("ntab")).ToString();
+                            if (table == "1") table = "PERSON";
+                        }
+                    }
+                    break;
+                case ASqlManager.DBType.Sqlite:
+                    using (DbDataReader read = cmd.ExecuteReader())
+                    {
+                        while (read.Read())
+                        {
+                            table = read.GetString(read.GetOrdinal("name"));
+                        }
+                    }
+                    break;
+            }
+            return table;
+        }
+        public static int CreateTable(ASqlConnection conn, string sql) 
+        {
+            int i = ExecuteNonQuery(conn, sql);
+            if (conn.DataBaseType == ASqlManager.DBType.Oracle)
+            {
+                ExecuteNonQuery(conn, CreateSequnce(tableName));
+                ExecuteNonQuery(conn, CreateTrigger(tableName));
+            }
+            return i;
+        }
+        public static int DropTable(ASqlConnection conn, string sql) 
+        {
+            int i = ExecuteNonQuery(conn, sql);
+            if (conn.DataBaseType == ASqlManager.DBType.Oracle)
+            {
+                ExecuteNonQuery(conn, DropSequenceQuery(tableName));
+            }
+            return i;
         }
         #endregion
         #region Utilities
