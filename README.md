@@ -20,7 +20,9 @@ Inside our library We use the most famous libraries for connecting to these 5 da
 
 We have added the event OnGenericQueryEnd to trace all the query and their performances executed in your software.
 
-Here you can find examples : 
+We have added the MultiDatabase option and you can use more connections at the same time (useful if you have to implement migration tools or you have data to handle in multiple databases inside your software)
+
+Here you can find quick examples but if you want more we suggest to download the GitHub project and watch the ASql.Tester Project : 
 
             # Example 1 Basic query
 
@@ -153,4 +155,36 @@ Here you can find examples :
                 }
 
                 r = cmd.ExecuteNonQuery();
+            }
+
+            # Example 6 using multiple connections at the same time
+
+            ASqlManager.DataBaseType = ASqlManager.DBType.MultiDatabase; //Selecting MultiDatapase enum
+            ASqlConnection sqlConn = new ASqlConnection(ASqlManager.DBType.SqlServer, Utils.sqlConnectionString); //Passing DataBase type in the constructor
+            ASqlConnection oraConn = new ASqlConnection(ASqlManager.DBType.Oracle, Utils.oraConnectionString);
+            sqlConn.Open();
+            oraConn.Open();
+            DbTransaction sqlTrans = sqlConn.BeginTransaction();
+            DbTransaction oraTrans = oraConn.BeginTransaction();
+            Utils.InsertRow(sqlConn, Utils.sqlInsertRow, sqlTrans);
+            Utils.InsertRow(oraConn, Utils.oraInsertRow, oraTrans);
+            sqlTrans.Rollback();
+            oraTrans.Rollback();
+            sqlConn.Close();
+            oraConn.Close();
+
+            public static int InsertRow(ASqlConnection conn, string sql, DbTransaction trans=null) 
+            {
+                int r = 0;
+                ASqlCommand cmd = new ASqlCommand(sql, conn);
+                if(trans!=null)
+                    cmd.Transaction = trans;
+                string paramChar = "";
+                List<ASqlParameter> apc = Utils.GetASqlParametersFromScratch(conn.DataBaseType,paramChar); //Passing DataBase type of your connection in the constructor
+                foreach (ASqlParameter param in apc)
+                {
+                    cmd.aSqlParameters.Add(param);
+                }
+                r = cmd.ExecuteNonQuery();
+                return r;
             }
