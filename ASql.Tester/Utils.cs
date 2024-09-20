@@ -602,10 +602,10 @@ namespace ASql.Tester
         public static string CreateTrigger(string tableName)
         {
             string query = $"CREATE OR REPLACE TRIGGER {tableName}_seq_tr " +
-                           "BEFORE INSERT ON person FOR EACH ROW " +
+                           $"BEFORE INSERT ON {tableName} FOR EACH ROW " +
                            "WHEN (NEW.id IS NULL) " +
                            "BEGIN " +
-                           "SELECT person_seq.NEXTVAL INTO :NEW.id FROM DUAL; " +
+                           $"SELECT {tableName}_seq.NEXTVAL INTO :NEW.id FROM DUAL; " +
                            "END; ";
             return query;
         }
