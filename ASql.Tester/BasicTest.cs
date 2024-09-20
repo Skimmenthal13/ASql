@@ -15,8 +15,6 @@ namespace ASql.Tester
     [TestClass]
     public class BasicTest
     {
-      
-
         [DataRow(ASqlManager.DBType.SqlServer, Utils.sqlConnectionString)]
         [DataRow(ASqlManager.DBType.Oracle, Utils.oraConnectionString)]
         [DataRow(ASqlManager.DBType.MySql, Utils.mysConnectionString)]
