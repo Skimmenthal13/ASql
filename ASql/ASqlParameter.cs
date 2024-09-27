@@ -17,15 +17,16 @@ namespace ASql
 {
     public class ASqlParameter : DbParameter
     {
-        SqlParameter _sqlPrm;
-        OracleParameter _oraPrm;
-        MySqlParameter _mysPrm;
-        NpgsqlParameter _posPrm;
-        SqliteParameter _litPrm;
+        readonly SqlParameter _sqlPrm = null;
+        readonly OracleParameter _oraPrm = null;
+        readonly MySqlParameter _mysPrm = null;
+        readonly NpgsqlParameter _posPrm = null;
+        readonly SqliteParameter _litPrm = null;
 
         public DBType DataBaseType { get; set; }
-
+        #nullable enable
         internal ASqlParameterCollection? ParameterCollection { get; set; }
+        #nullable disable   
         public ASqlParameter() 
         {
             DataBaseType = ASqlManager.DataBaseType;

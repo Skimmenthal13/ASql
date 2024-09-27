@@ -18,11 +18,11 @@ namespace ASql
 {
     public class ASqlTransaction : DbTransaction
     {
-        SqlTransaction _sqlTran;
-        OracleTransaction _oraTran;
-        MySqlTransaction _mysTran;
-        NpgsqlTransaction _posTran;
-        SqliteTransaction _litTran;
+        readonly SqlTransaction _sqlTran = null;
+        readonly OracleTransaction _oraTran = null;
+        readonly MySqlTransaction _mysTran = null;
+        readonly NpgsqlTransaction _posTran = null;
+        readonly SqliteTransaction _litTran = null;
         public override IsolationLevel IsolationLevel => GetIsolationLevel();
         private IsolationLevel GetIsolationLevel() 
         {
@@ -87,7 +87,6 @@ namespace ASql
 
         public override void Rollback()
         {
-            DateTime startTime = DateTime.Now;
             switch (ASqlManager.DataBaseType)
             {
                 case ASqlManager.DBType.SqlServer:

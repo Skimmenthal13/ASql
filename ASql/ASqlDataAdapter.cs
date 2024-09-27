@@ -14,17 +14,17 @@ using static ASql.ASqlManager;
 
 namespace ASql
 {
-    public class ASqlDataAdapter : DbDataAdapter, IDbDataAdapter, IDataAdapter, ICloneable
+    public class ASqlDataAdapter : DbDataAdapter, IDbDataAdapter
     {
-        SqlDataAdapter _sqlDataAdapter;
-        OracleDataAdapter _oraDataAdapter;
-        MySqlDataAdapter _mysDataAdapter;
-        NpgsqlDataAdapter _posDataAdapter;
-        SqliteDataAdapter _litDataAdapter;
+        readonly SqlDataAdapter _sqlDataAdapter = null;
+        readonly OracleDataAdapter _oraDataAdapter = null;
+        readonly MySqlDataAdapter _mysDataAdapter = null;
+        readonly NpgsqlDataAdapter _posDataAdapter = null;
+        readonly SqliteDataAdapter _litDataAdapter = null;
 
         public DBType DataBaseType { get; set; }
 
-        ASqlCommand _cmd;
+        readonly ASqlCommand _cmd = null;
 
         public ASqlDataAdapter() 
         {
@@ -99,17 +99,8 @@ namespace ASql
                     throw new NotSupportedException();
             }
         }
-        //TODO
-        //public ASqlDataAdapter(string selectCommandText, ASqlConnection selectConnection) 
-        //{
-
-        //}
-        //public ASqlDataAdapter(string selectCommandText, string selectConnectionString)
-        //{
-
-        //}
-
-        public int Fill(DataSet dataSet)
+        
+        public new int Fill(DataSet dataSet)
         {
             DateTime startTime = DateTime.Now;
             int res = 0;
@@ -134,7 +125,8 @@ namespace ASql
                 default:
                     throw new NotSupportedException();
             }
-            double totalMs = (DateTime.Now - startTime).TotalMilliseconds;
+            DateTime now = DateTime.Now;
+            double totalMs = (now - startTime).TotalMilliseconds;
             OnGenericQueryEnd?.Invoke(this, new GenericQueryEndEventArgs {Method=ReflectionHelper.GetMethodFullName(MethodBase.GetCurrentMethod()), Query = query, TotalMilliseconds = totalMs, aSqlParameters = _cmd.aSqlParameters });
             return res;
         }

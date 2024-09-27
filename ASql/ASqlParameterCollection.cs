@@ -55,7 +55,6 @@ namespace ASql
             return parameter;
         }
 
-        //public ASqlParameter Add(string parameterName, DbType ASqlDbType) => Add(new(parameterName, ASqlDbType));
         public ASqlParameter Add(string parameterName, DbType ASqlDbType, int size) => Add(new(parameterName, ASqlDbType, size));
 
         public override void AddRange(Array values)
@@ -63,9 +62,10 @@ namespace ASql
             foreach (var obj in values)
                 Add(obj!);
         }
-
+        #nullable enable
         public ASqlParameter AddWithValue(string parameterName, object? value)
         {
+        #nullable disable
             var parameter = new ASqlParameter
             {
                 ParameterName = parameterName,
@@ -109,13 +109,16 @@ namespace ASql
 
         // Finds the index of a parameter by name, regardless of whether 'parameterName' or the matching
         // ASqlParameter.ParameterName has a leading '?' or '@'.
+        #nullable enable
         internal int NormalizedIndexOf(string? parameterName) =>
             UnsafeIndexOf(ASqlParameter.NormalizeParameterName(parameterName ?? ""));
+#nullable disable
 
         // Finds the index of a parameter by normalized name (i.e., the results of ASqlParameter.NormalizeParameterName).
+#nullable enable
         internal int UnsafeIndexOf(string? normalizedParameterName) =>
             m_nameToIndex.TryGetValue(normalizedParameterName ?? "", out var index) ? index : -1;
-
+#nullable disable
         public override void Insert(int index, object value) => AddParameter((ASqlParameter)(value ?? throw new ArgumentNullException(nameof(value))), index);
 
         public override bool IsFixedSize => false;
@@ -186,7 +189,7 @@ namespace ASql
             if (newName.Length != 0)
             {
                 if (m_nameToIndex.ContainsKey(newName))
-                    throw new Exception($"There is already a parameter with the name '{parameter.ParameterName}' in this collection.");
+                    throw new ArgumentException($"There is already a parameter with the name '{parameter.ParameterName}' in this collection.");
                 m_nameToIndex[newName] = index;
             }
         }
@@ -194,7 +197,7 @@ namespace ASql
         private void AddParameter(ASqlParameter parameter, int index)
         {
             if (!string.IsNullOrEmpty(parameter.NormalizedParameterName) && NormalizedIndexOf(parameter.NormalizedParameterName) != -1)
-                throw new Exception($"Parameter '{parameter.ParameterName}' has already been defined.");
+                throw new ArgumentException($"Parameter '{parameter.ParameterName}' has already been defined.");
             if (index < m_parameters.Count)
             {
                 foreach (var pair in m_nameToIndex.ToList())

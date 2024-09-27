@@ -664,7 +664,6 @@ namespace ASql.Tester
         }
         static internal List<ASqlParameter> GetParametersFromkeyValuePairs(Dictionary<string, object> keyValuePairs, string paramChar)
         {
-            string vals = "";
             List<ASqlParameter> prm = new List<ASqlParameter>();
             foreach (KeyValuePair<string, object> currKvp in keyValuePairs)
             {

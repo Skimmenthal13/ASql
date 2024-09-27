@@ -19,31 +19,14 @@ namespace ASql
 {
     public class ASqlDataReader : DbDataReader
     {
-        SqlDataReader _sqlReader;
-        OracleDataReader _oraReader;
-        MySqlDataReader _mysReader;
-        NpgsqlDataReader _posReader;
-        SqliteDataReader _litReader;
+        readonly SqlDataReader _sqlReader = null;
+        readonly OracleDataReader _oraReader = null;
+        readonly MySqlDataReader _mysReader = null;
+        readonly NpgsqlDataReader _posReader = null;
+        readonly SqliteDataReader _litReader = null;
         
         public override object this[int ordinal] => GetThis(ordinal);
-        private object GetThis(int ordinal) 
-        {
-            switch (ASqlManager.DataBaseType)
-            {
-                case ASqlManager.DBType.SqlServer:
-                    return _sqlReader[ordinal];
-                case ASqlManager.DBType.Oracle:
-                    return _oraReader[ordinal];
-                case ASqlManager.DBType.MySql:
-                    return _mysReader[ordinal];
-                case ASqlManager.DBType.PostgreSQL:
-                    return _posReader[ordinal];
-                case ASqlManager.DBType.Sqlite:
-                    return _litReader[ordinal];
-                default:
-                    throw new NotSupportedException();
-            }
-        }
+        
         public override object this[string name] => GetThis(name);
         private object GetThis(string name)
         {
@@ -59,6 +42,24 @@ namespace ASql
                     return _posReader[name];
                 case ASqlManager.DBType.Sqlite:
                     return _litReader[name];
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+        private object GetThis(int ordinal)
+        {
+            switch (ASqlManager.DataBaseType)
+            {
+                case ASqlManager.DBType.SqlServer:
+                    return _sqlReader[ordinal];
+                case ASqlManager.DBType.Oracle:
+                    return _oraReader[ordinal];
+                case ASqlManager.DBType.MySql:
+                    return _mysReader[ordinal];
+                case ASqlManager.DBType.PostgreSQL:
+                    return _posReader[ordinal];
+                case ASqlManager.DBType.Sqlite:
+                    return _litReader[ordinal];
                 default:
                     throw new NotSupportedException();
             }

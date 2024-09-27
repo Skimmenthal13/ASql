@@ -99,7 +99,9 @@ namespace ASql
                     throw new NotSupportedException();
             }
         }
+        #nullable enable
         private ASqlParameterCollection? m_parameterCollection;
+        #nullable disable
         public ASqlParameterCollection aSqlParameters => m_parameterCollection ??= [];
         public override string CommandText {
             get {
@@ -460,7 +462,8 @@ namespace ASql
                 default:
                     throw new NotSupportedException();
             }
-            double totalMs = (DateTime.Now - startTime).TotalMilliseconds;
+            DateTime now = DateTime.Now;
+            double totalMs = (now - startTime).TotalMilliseconds;
             OnGenericQueryEnd?.Invoke(this, new GenericQueryEndEventArgs { Method = ReflectionHelper.GetMethodFullName(MethodBase.GetCurrentMethod()), Query = query, TotalMilliseconds = totalMs, aSqlParameters = this.aSqlParameters });
             return res;
             
@@ -491,7 +494,8 @@ namespace ASql
                 default:
                     throw new NotSupportedException();
             }
-            double totalMs = (DateTime.Now - startTime).TotalMilliseconds;
+            DateTime now = DateTime.Now;
+            double totalMs = (now - startTime).TotalMilliseconds;
             OnGenericQueryEnd?.Invoke(this, new GenericQueryEndEventArgs { Method = ReflectionHelper.GetMethodFullName(MethodBase.GetCurrentMethod()), Query = query, TotalMilliseconds = totalMs, aSqlParameters = this.aSqlParameters });
             return res;
         }
@@ -565,7 +569,8 @@ namespace ASql
                 default:
                     throw new NotSupportedException();
             }
-            double totalMs = (DateTime.Now - startTime).TotalMilliseconds;
+            DateTime now = DateTime.Now;
+            double totalMs = (now - startTime).TotalMilliseconds;
             OnGenericQueryEnd?.Invoke(this, new GenericQueryEndEventArgs { Method = ReflectionHelper.GetMethodFullName(MethodBase.GetCurrentMethod()), Query = query, TotalMilliseconds = totalMs, aSqlParameters = this.aSqlParameters });
             return res;
         }

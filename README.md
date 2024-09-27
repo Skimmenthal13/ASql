@@ -1,6 +1,6 @@
 # ASql
 
-C# Library that let use multiple types of databases ASql C# Library that let use multiple types of databases (SqlServer, Oracle, MySql, PostgreSQL, Sqlite) with same code with same code
+C# Library that let use multiple types of databases ASql C# Library that let use multiple types of databases (SqlServer, Oracle, MySql, PostgreSQL, Sqlite) with same code
 
 The supported databases are SqlServer, Oracle, MySql, PostgreSQL and Sqlite
 

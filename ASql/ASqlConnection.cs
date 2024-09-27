@@ -19,13 +19,15 @@ using static ASql.ASqlManager;
 namespace ASql
 {
 
+#pragma warning disable S3881 // "IDisposable" should be implemented correctly
     public class ASqlConnection : DbConnection, IDisposable
+#pragma warning restore S3881 // "IDisposable" should be implemented correctly
     {
-        SqlConnection _sqlConn;
-        OracleConnection _oraConn;
-        MySqlConnection _mysConn;
-        NpgsqlConnection _posConn;
-        SqliteConnection _litConn;
+        readonly SqlConnection _sqlConn = null;
+        readonly OracleConnection _oraConn = null;
+        readonly MySqlConnection _mysConn = null;
+        readonly NpgsqlConnection _posConn = null;
+        readonly SqliteConnection _litConn = null;
 
         
         public DBType DataBaseType { get; set; }
@@ -386,7 +388,7 @@ namespace ASql
             }
         }
 
-        public void Dispose()
+        public  new void Dispose()
         {
             switch (DataBaseType)
             {
@@ -421,8 +423,10 @@ namespace ASql
                     }
                     break;
                 default:
-                    throw new NotSupportedException();
+                    throw new NotImplementedException();
+
             }
         }
+        
     }
 }
